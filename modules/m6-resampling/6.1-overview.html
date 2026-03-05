@@ -1,0 +1,183 @@
+<h1>6.1 — Resampling Overview</h1>
+<p class="topic-meta">Module 6 · Resampling · ~15 min</p>
+
+<h2>Introduction</h2>
+<p>Different systems operate at different sampling rates. A microphone might capture at 48 kHz; a codec transmits at 8 kHz; a storage system archives at 44.1 kHz. To move signals between these worlds, you need <strong>resampling</strong> — changing the sampling rate of a digital signal while preserving its content.</p>
+<p>Resampling also appears in frequency shifting, image scaling, and synchronization. Module 6 covers all the key operations: upsampling, downsampling, zero stuffing, and rational-factor resampling.</p>
+
+<h2>Core Concept</h2>
+<h3>Why Resampling is Tricky</h3>
+<p>You might think: "just pick samples at the new rate." But there are two fundamental challenges:</p>
+<ol>
+  <li><strong>Upsampling</strong>: you need new sample values that don't exist yet — requiring interpolation.</li>
+  <li><strong>Downsampling</strong>: you need to throw away samples — but if the signal has high-frequency content, discarding samples causes aliasing. So you must <strong>lowpass filter first</strong>.</li>
+</ol>
+
+<h3>Rational-Factor Resampling</h3>
+<p>To change the sampling rate by a rational factor $P/Q$:</p>
+<ol>
+  <li><strong>Upsample by P</strong>: insert $P-1$ zeros between each sample.</li>
+  <li><strong>Lowpass filter</strong>: smooth out the zeros and prevent aliasing.</li>
+  <li><strong>Downsample by Q</strong>: keep every $Q$th sample.</li>
+</ol>
+
+$$f_{s,new} = \frac{P}{Q} \cdot f_{s,old}$$
+
+<div class="callout">
+  <strong>Example:</strong> Converting from 44.1 kHz (CD) to 48 kHz (DAT): $P/Q = 48000/44100 = 160/147$. Upsample by 160, filter, downsample by 147. In practice done efficiently with polyphase filterbanks.
+</div>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 100" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="10">
+    <!-- Input -->
+    <text x="20" y="30" fill="#00e5ff">x[n]</text>
+    <text x="20" y="44" fill="#8892b0">fs</text>
+    <line x1="55" y1="35" x2="90" y2="35" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ac)"/>
+
+    <!-- Up by P -->
+    <rect x="90" y="22" width="60" height="26" rx="4" fill="none" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="120" y="38" text-anchor="middle" fill="#7c3aed">↑ P</text>
+    <line x1="150" y1="35" x2="185" y2="35" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ac)"/>
+
+    <!-- LPF -->
+    <rect x="185" y="22" width="70" height="26" rx="4" fill="none" stroke="#ffd740" stroke-width="1.5"/>
+    <text x="220" y="38" text-anchor="middle" fill="#ffd740">LPF</text>
+    <line x1="255" y1="35" x2="290" y2="35" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ac)"/>
+
+    <!-- Down by Q -->
+    <rect x="290" y="22" width="60" height="26" rx="4" fill="none" stroke="#ff5252" stroke-width="1.5"/>
+    <text x="320" y="38" text-anchor="middle" fill="#ff5252">↓ Q</text>
+    <line x1="350" y1="35" x2="385" y2="35" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ac)"/>
+
+    <!-- Output -->
+    <text x="388" y="30" fill="#00e5ff">y[m]</text>
+    <text x="388" y="44" fill="#8892b0">(P/Q)·fs</text>
+
+    <defs>
+      <marker id="ac" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+        <path d="M0,0 L5,2.5 L0,5 Z" fill="#8892b0"/>
+      </marker>
+    </defs>
+
+    <!-- Rate labels -->
+    <text x="120" y="72" text-anchor="middle" fill="#8892b0" font-size="9">P·fs</text>
+    <text x="220" y="72" text-anchor="middle" fill="#8892b0" font-size="9">P·fs (filtered)</text>
+    <text x="320" y="72" text-anchor="middle" fill="#8892b0" font-size="9">(P/Q)·fs</text>
+  </svg>
+  <figcaption>Rational-factor resampling pipeline: upsample by P → lowpass filter → downsample by Q.</figcaption>
+</div>
+
+<h3>Module 6 Roadmap</h3>
+<ul>
+  <li><strong>6.2 Upsampling</strong> — insert samples, spectral copies (images), need for interpolation filter</li>
+  <li><strong>6.3 Downsampling</strong> — decimation, anti-aliasing requirement</li>
+  <li><strong>6.4 Zero Stuffing</strong> — upsampling by inserting zeros (and spectral consequences)</li>
+  <li><strong>6.5 Zero Padding</strong> — recap and contrast with zero stuffing</li>
+</ul>
+
+<h2>Mathematical Foundation</h2>
+<p>Sampling rate conversion by $P/Q$ can be represented as an ideal interpolation followed by resampling:</p>
+
+$$y[m] = x_a(m \cdot T_{s,new}) = x_a\!\left(\frac{m Q}{P f_s}\right)$$
+
+<p>where $x_a(t)$ is the continuous (bandlimited) signal reconstructed from $x[n]$. In practice, this ideal reconstruction is approximated by a polyphase filter.</p>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="Rational-factor resampling requires P/Q to be a ratio of integers. You upsample by P, filter, then downsample by Q. For arbitrary non-rational ratios, you approximate with a sufficiently accurate P/Q fraction.">
+  <h3>Q1. Converting from 44.1 kHz to 48 kHz requires what resampling factor?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Upsample by 48, downsample by 44</li>
+    <li class="quiz-option" data-correct="true">Upsample by 160, downsample by 147 (ratio 160/147)</li>
+    <li class="quiz-option" data-correct="false">Downsample only by 44.1/48</li>
+    <li class="quiz-option" data-correct="false">Simply change the sampling rate label without processing</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="The lowpass filter in the resampling chain serves two purposes: (1) when upsampling, it removes the spectral images (copies) introduced by zero-stuffing; (2) when downsampling, it removes frequencies above the new Nyquist to prevent aliasing.">
+  <h3>Q2. Why is a lowpass filter needed in the resampling chain?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">To amplify the signal to unity gain</li>
+    <li class="quiz-option" data-correct="true">To remove spectral images after upsampling and prevent aliasing before downsampling</li>
+    <li class="quiz-option" data-correct="false">To synchronize the two sample clocks</li>
+    <li class="quiz-option" data-correct="false">To reduce quantization noise</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Polyphase filter implementation computes the resampling in a single efficient stage, avoiding the need to explicitly create and then discard P-1 zero-stuffed samples. It's much more computationally efficient.">
+  <h3>Q3. Polyphase filterbanks are used for resampling because they:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Produce better audio quality than direct resampling</li>
+    <li class="quiz-option" data-correct="true">Compute the rational-rate conversion efficiently without explicitly generating all intermediate upsampled samples</li>
+    <li class="quiz-option" data-correct="false">Eliminate the need for a lowpass filter</li>
+    <li class="quiz-option" data-correct="false">Allow non-integer resampling ratios exactly</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 6.1 Resampling Overview — resample() demo
+
+%% Generate test signal
+fs_orig = 8000;
+T = 1;
+t_orig = (0:1/fs_orig:T-1/fs_orig);
+f0 = 440;
+x = sin(2*pi*f0*t_orig) + 0.3*sin(2*pi*880*t_orig);
+
+%% Resample to different rates using MATLAB's resample()
+% resample(x, P, Q) converts from fs_orig to (P/Q)*fs_orig
+rates = [4000, 16000, 22050, 44100];
+P_Q = {[1 2], [2 1], [441 160], [441 80]};   % approximate ratios
+
+figure('Name','Resampling Demo');
+subplot(length(rates)+1, 1, 1);
+plot(t_orig, x); title(sprintf('Original: fs=%d Hz', fs_orig)); xlabel('Time (s)');
+
+for i = 1:length(rates)
+  [P, Q] = deal(P_Q{i}(1), P_Q{i}(2));
+  y = resample(x, P, Q);
+  fs_new = fs_orig * P / Q;
+  t_new  = (0:length(y)-1) / fs_new;
+  subplot(length(rates)+1, 1, i+1);
+  plot(t_new, y);
+  title(sprintf('Resampled: fs=%d Hz (P=%d, Q=%d)', round(fs_new), P, Q));
+  xlabel('Time (s)');
+end
+
+%% Verify: spectrum should show same frequencies regardless of rate
+figure('Name','Spectrum Before/After Resampling');
+[P2, Q2] = deal(2, 1);
+y2 = resample(x, P2, Q2);
+fs2 = fs_orig * P2 / Q2;
+
+N1 = length(x);  N2 = length(y2);
+subplot(2,1,1);
+stem((0:N1/2-1)*fs_orig/N1, abs(fft(x))*2/N1, 'filled', 'MarkerSize',3);
+title('Original spectrum'); xlabel('Hz'); xlim([0 1200]);
+subplot(2,1,2);
+stem((0:N2/2-1)*fs2/N2, abs(fft(y2))*2/N2, 'filled', 'MarkerSize',3);
+title('After 2× upsampling (same frequencies, higher Nyquist)'); xlabel('Hz'); xlim([0 1200]);
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>After resampling, the signal should still contain exactly 440 Hz and 880 Hz — just represented at a different sample rate. The spectrum plot confirms this: both peaks appear at the same frequencies regardless of the sampling rate.</p>
+</details>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Resampling changes the sampling rate of a digital signal while preserving content.</li>
+    <li>Rational-factor: upsample by $P$ → lowpass filter → downsample by $Q$.</li>
+    <li>The LPF prevents both spectral images (from upsampling) and aliasing (before downsampling).</li>
+    <li>In MATLAB: <code>resample(x, P, Q)</code> handles the complete resampling chain efficiently.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m5-filters/5.6-pole-zero-plot'); return false;">← 5.6 Pole/Zero Plot</a>
+  <a href="#" onclick="loadTopic('m6-resampling/6.2-upsampling'); return false;">Next: 6.2 Upsampling →</a>
+</div>

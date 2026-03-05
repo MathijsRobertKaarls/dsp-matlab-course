@@ -1,0 +1,254 @@
+<h1>6.5 — Zero Padding: Recap &amp; Contrast with Zero Stuffing</h1>
+<p class="topic-meta">Module 6 · Resampling · ~10 min</p>
+
+<h2>Introduction</h2>
+<p>This final topic consolidates the two "zero" operations that are frequently confused: <strong>zero padding</strong> and <strong>zero stuffing</strong>. Both involve adding zeros to a signal, but they operate in different dimensions, serve different purposes, and have completely different effects on the spectrum.</p>
+
+<h2>Side-by-Side Comparison</h2>
+
+<table style="width:100%;border-collapse:collapse;font-size:0.88rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.5rem 0.7rem">Property</th>
+    <th style="padding:0.5rem 0.7rem">Zero Stuffing (6.4)</th>
+    <th style="padding:0.5rem 0.7rem">Zero Padding (3.2)</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.5rem 0.7rem"><strong>Where zeros go</strong></td>
+    <td style="padding:0.5rem 0.7rem">Between existing samples</td>
+    <td style="padding:0.5rem 0.7rem">At the end of the signal</td>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.5rem 0.7rem"><strong>Purpose</strong></td>
+    <td style="padding:0.5rem 0.7rem">Upsampling (rate conversion)</td>
+    <td style="padding:0.5rem 0.7rem">Finer DFT frequency grid</td>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.5rem 0.7rem"><strong>Sampling rate</strong></td>
+    <td style="padding:0.5rem 0.7rem">Changes (×L)</td>
+    <td style="padding:0.5rem 0.7rem">Unchanged</td>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.5rem 0.7rem"><strong>Frequency resolution</strong></td>
+    <td style="padding:0.5rem 0.7rem">Unchanged (same signal content)</td>
+    <td style="padding:0.5rem 0.7rem">Unchanged (denser grid, not more info)</td>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.5rem 0.7rem"><strong>Spectral effect</strong></td>
+    <td style="padding:0.5rem 0.7rem">Creates periodic spectral images</td>
+    <td style="padding:0.5rem 0.7rem">Interpolates spectrum (smoother curve)</td>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.5rem 0.7rem"><strong>Need post-filter?</strong></td>
+    <td style="padding:0.5rem 0.7rem">Yes — interpolation LPF to remove images</td>
+    <td style="padding:0.5rem 0.7rem">No — directly used for FFT</td>
+  </tr>
+  <tr>
+    <td style="padding:0.5rem 0.7rem"><strong>MATLAB</strong></td>
+    <td style="padding:0.5rem 0.7rem"><code>upsample(x, L)</code></td>
+    <td style="padding:0.5rem 0.7rem"><code>fft(x, M)</code> with M &gt; N</td>
+  </tr>
+</table>
+
+<div class="callout">
+  <strong>Memory trick:</strong> Zero stuffing <em>stuffs</em> the signal with zeros in the middle (like stuffing a sandwich). Zero padding <em>pads</em> the end (like padding the end of a form with blank space).
+</div>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="10">
+    <!-- Zero Stuffing -->
+    <text x="110" y="12" text-anchor="middle" fill="#7c3aed">Zero Stuffing (upsampling)</text>
+    <text x="110" y="140" text-anchor="middle" fill="#8892b0" font-size="8">x[n] → x[0], 0, x[1], 0, x[2], 0, ...</text>
+
+    <rect x="10" y="20" width="20" height="20" fill="#00e5ff" rx="2"/>
+    <rect x="32" y="20" width="20" height="20" fill="#2e3352" rx="2"/>
+    <rect x="54" y="20" width="20" height="20" fill="#00e5ff" rx="2"/>
+    <rect x="76" y="20" width="20" height="20" fill="#2e3352" rx="2"/>
+    <rect x="98" y="20" width="20" height="20" fill="#00e5ff" rx="2"/>
+    <rect x="120" y="20" width="20" height="20" fill="#2e3352" rx="2"/>
+    <rect x="142" y="20" width="20" height="20" fill="#00e5ff" rx="2"/>
+    <rect x="164" y="20" width="20" height="20" fill="#2e3352" rx="2"/>
+    <rect x="186" y="20" width="20" height="20" fill="#00e5ff" rx="2"/>
+    <rect x="208" y="20" width="20" height="20" fill="#2e3352" rx="2"/>
+
+    <text x="10"  y="55" fill="#00e5ff" font-size="8">x0</text>
+    <text x="32"  y="55" fill="#8892b0" font-size="8">0</text>
+    <text x="54"  y="55" fill="#00e5ff" font-size="8">x1</text>
+    <text x="76"  y="55" fill="#8892b0" font-size="8">0</text>
+    <text x="98"  y="55" fill="#00e5ff" font-size="8">x2</text>
+    <text x="120" y="55" fill="#8892b0" font-size="8">0</text>
+    <text x="142" y="55" fill="#00e5ff" font-size="8">x3</text>
+    <text x="164" y="55" fill="#8892b0" font-size="8">0</text>
+
+    <!-- Zero Padding -->
+    <text x="390" y="12" text-anchor="middle" fill="#ffd740">Zero Padding (FFT)</text>
+    <text x="390" y="140" text-anchor="middle" fill="#8892b0" font-size="8">x[n] → x[0], x[1], ..., x[N-1], 0, 0, ...</text>
+
+    <rect x="270" y="20" width="20" height="20" fill="#00e5ff" rx="2"/>
+    <rect x="292" y="20" width="20" height="20" fill="#00e5ff" rx="2"/>
+    <rect x="314" y="20" width="20" height="20" fill="#00e5ff" rx="2"/>
+    <rect x="336" y="20" width="20" height="20" fill="#00e5ff" rx="2"/>
+    <rect x="358" y="20" width="20" height="20" fill="#2e3352" rx="2"/>
+    <rect x="380" y="20" width="20" height="20" fill="#2e3352" rx="2"/>
+    <rect x="402" y="20" width="20" height="20" fill="#2e3352" rx="2"/>
+    <rect x="424" y="20" width="20" height="20" fill="#2e3352" rx="2"/>
+    <rect x="446" y="20" width="20" height="20" fill="#2e3352" rx="2"/>
+    <rect x="468" y="20" width="20" height="20" fill="#2e3352" rx="2"/>
+
+    <text x="270" y="55" fill="#00e5ff" font-size="8">x0</text>
+    <text x="292" y="55" fill="#00e5ff" font-size="8">x1</text>
+    <text x="314" y="55" fill="#00e5ff" font-size="8">x2</text>
+    <text x="336" y="55" fill="#00e5ff" font-size="8">x3</text>
+    <text x="358" y="55" fill="#8892b0" font-size="8">0</text>
+    <text x="380" y="55" fill="#8892b0" font-size="8">0</text>
+    <text x="402" y="55" fill="#8892b0" font-size="8">0</text>
+    <text x="424" y="55" fill="#8892b0" font-size="8">0</text>
+    <text x="446" y="55" fill="#8892b0" font-size="8">0</text>
+    <text x="468" y="55" fill="#8892b0" font-size="8">0</text>
+
+    <!-- Braces -->
+    <line x1="270" y1="60" x2="352" y2="60" stroke="#00e5ff" stroke-width="1.5"/>
+    <text x="311" y="72" text-anchor="middle" fill="#00e5ff" font-size="8">signal</text>
+    <line x1="358" y1="60" x2="488" y2="60" stroke="#2e3352" stroke-width="1.5"/>
+    <text x="423" y="72" text-anchor="middle" fill="#8892b0" font-size="8">appended zeros</text>
+
+    <!-- Effects -->
+    <text x="110" y="90" text-anchor="middle" fill="#7c3aed" font-size="9">Effect: spectral images (need LPF)</text>
+    <text x="390" y="90" text-anchor="middle" fill="#ffd740" font-size="9">Effect: smoother FFT spectrum</text>
+    <text x="110" y="105" text-anchor="middle" fill="#8892b0" font-size="9">Rate: fs → L×fs</text>
+    <text x="390" y="105" text-anchor="middle" fill="#8892b0" font-size="9">Rate: unchanged (still fs)</text>
+    <text x="110" y="120" text-anchor="middle" fill="#8892b0" font-size="9">MATLAB: upsample(x, L)</text>
+    <text x="390" y="120" text-anchor="middle" fill="#8892b0" font-size="9">MATLAB: fft(x, M)</text>
+  </svg>
+  <figcaption>Zero stuffing (left) inserts zeros between samples — for upsampling. Zero padding (right) appends zeros at the end — for finer FFT frequency grid.</figcaption>
+</div>
+
+<h2>When Each is Used</h2>
+<h3>Use Zero Stuffing when:</h3>
+<ul>
+  <li>Converting from a lower to a higher sample rate.</li>
+  <li>First step in rational resampling (before the interpolation filter).</li>
+  <li>Implementing a polyphase filterbank.</li>
+</ul>
+
+<h3>Use Zero Padding when:</h3>
+<ul>
+  <li>You want a smoother-looking spectrum for visualization.</li>
+  <li>You need to more accurately locate a spectral peak that falls between DFT bins.</li>
+  <li>You need to pad to the next power of 2 for FFT efficiency.</li>
+  <li>You need a certain DFT size for circular convolution via overlap-add/save methods.</li>
+</ul>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="You are computing an FFT and want a finer frequency axis. Zero padding appends zeros to the end, increasing the DFT size M > N. The sample rate stays at fs; only the frequency resolution of the DFT axis (fs/M) becomes finer — but true resolution is still fs/N.">
+  <h3>Q1. You want a smoother FFT plot from a 256-sample signal. You should:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Use <code>upsample(x, 4)</code> to zero-stuff before the FFT</li>
+    <li class="quiz-option" data-correct="true">Use <code>fft(x, 1024)</code> to zero-pad to 1024 points</li>
+    <li class="quiz-option" data-correct="false">Upsample the signal and recompute the FFT at the new rate</li>
+    <li class="quiz-option" data-correct="false">Record a longer signal — 256 samples is too short for any FFT</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="To convert from 8 kHz to 16 kHz, you upsample by L=2. The first step is zero stuffing (upsample by 2), followed by a lowpass interpolation filter to remove the spectral image.">
+  <h3>Q2. To upsample audio from 8 kHz to 16 kHz, you should:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Zero-pad the signal to twice its length and take the FFT</li>
+    <li class="quiz-option" data-correct="true">Zero-stuff by L=2 (<code>upsample(x,2)</code>) then apply a lowpass interpolation filter</li>
+    <li class="quiz-option" data-correct="false">Append the signal to itself</li>
+    <li class="quiz-option" data-correct="false">Apply a highpass filter at 8 kHz</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Zero padding for FFT does not change the sampling rate — it's still computed at fs. It only evaluates the DTFT at more frequency points. Zero stuffing changes the effective sample rate from fs to L*fs.">
+  <h3>Q3. What is the key fundamental difference between zero stuffing and zero padding?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Zero stuffing is in the frequency domain; zero padding is in the time domain</li>
+    <li class="quiz-option" data-correct="false">Zero stuffing requires a filter; zero padding never does</li>
+    <li class="quiz-option" data-correct="true">Zero stuffing changes the sample rate (upsampling); zero padding doesn't change the sample rate (only DFT grid density)</li>
+    <li class="quiz-option" data-correct="false">They are mathematically identical — just different terminology</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 6.5 Zero Stuffing vs Zero Padding — Side-by-Side
+
+fs = 200;  N = 32;
+t  = (0:N-1)/fs;
+f0 = 30;
+x  = sin(2*pi*f0*t);
+
+%% Method A — Zero Padding (FFT of long sequence)
+M = 256;    % padded length
+X_zp = fft(x, M);   % zero-padded FFT
+f_zp = (0:M/2-1)*fs/M;
+
+%% Method B — Zero Stuffing (upsample by L = M/N)
+L = M/N;             % = 8
+x_zs = upsample(x, L);    % zero stuff
+b_i  = L * fir1(64, 1/L);
+x_interp = filter(b_i, 1, x_zs);  % interpolation filter
+fs_up = fs*L;
+f_zs = (0:length(x_zs)/2-1)*fs_up/length(x_zs);
+
+figure('Name','Zero Padding vs Zero Stuffing');
+
+% Time domain
+subplot(3,2,1); stem(t, x, 'filled', 'MarkerSize',4);
+title(sprintf('Original: N=%d, fs=%d Hz', N, fs)); xlabel('Time (s)');
+
+subplot(3,2,2); stem(t, x, 'filled', 'MarkerSize',4);
+title('Same original'); xlabel('Time (s)');
+
+% Operations
+subplot(3,2,3);
+x_pad = [x, zeros(1, M-N)];
+stem(0:M-1, x_pad, 'filled', 'MarkerSize',2);
+title(sprintf('Zero Padded to M=%d — zeros at end', M)); xlabel('Sample n');
+xline(N-0.5, 'r--', 'zeros start');
+
+subplot(3,2,4);
+stem(0:L*N-1, x_zs, 'filled', 'MarkerSize',2);
+title(sprintf('Zero Stuffed ×%d — zeros between samples', L)); xlabel('Sample n');
+
+% Spectra
+subplot(3,2,5);
+plot(f_zp, abs(X_zp(1:M/2))*2/N);
+xlabel('Hz'); ylabel('|X(f)|');
+title('FFT of zero-padded signal (smooth spectrum, same rate fs)');
+xline(f0,'r--','f0'); xlim([0 fs/2]);
+
+subplot(3,2,6);
+plot(f_zs, abs(fft(x_zs, length(x_zs)))*2/length(x_zs), 'DisplayName','Stuffed');
+hold on;
+plot(f_zs, abs(fft(x_interp, length(x_interp)))*2/length(x_interp), 'r', 'DisplayName','After interp filter');
+xlabel('Hz'); ylabel('|X(f)|');
+title(sprintf('FFT of zero-stuffed signal (rate = %d Hz): images visible', fs_up));
+legend; xline(f0,'k--'); xlim([0 fs_up/2]);
+
+% Conclusion
+fprintf('\nZero Padding:  fs unchanged (%d Hz), DFT bin size = %.2f Hz\n', fs, fs/M);
+fprintf('Zero Stuffing: fs increased to %d Hz, images at multiples of %d Hz\n', fs_up, fs/2);
+</code></pre>
+
+<div class="callout success">
+  <strong>✓ Course Complete!</strong> You have now covered all 6 modules of the DSP with MATLAB course — from ADC basics and the Fourier Transform through filter design, time-frequency analysis, and multirate processing. Congratulations!
+</div>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li><strong>Zero stuffing</strong>: zeros <em>between</em> samples → upsampling (rate ×L), creates spectral images, needs interpolation filter.</li>
+    <li><strong>Zero padding</strong>: zeros <em>at the end</em> → finer DFT grid, rate unchanged, no filter needed.</li>
+    <li>Neither operation adds new signal information — they cannot improve true frequency resolution.</li>
+    <li>Confusing these two operations is a very common DSP mistake!</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m6-resampling/6.4-zero-stuffing'); return false;">← 6.4 Zero Stuffing</a>
+  <a href="#" onclick="document.getElementById('welcome').style.display='block'; document.getElementById('topic-content').style.display='none'; return false;">↑ Back to Course Home</a>
+</div>

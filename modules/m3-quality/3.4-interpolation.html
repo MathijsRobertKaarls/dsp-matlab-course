@@ -1,0 +1,173 @@
+<h1>3.4 — Interpolation</h1>
+<p class="topic-meta">Module 3 · Signal Quality · ~15 min</p>
+
+<h2>Introduction</h2>
+<p>Sometimes you need sample values between your existing samples — maybe to resample to a higher rate, to align two signals recorded at different rates, or to reconstruct a smooth waveform from coarse measurements. <strong>Interpolation</strong> estimates those in-between values from the samples you have.</p>
+<p>The theoretically perfect method (sinc interpolation) comes from the Nyquist theorem itself. In practice, spline and linear methods offer good results with lower computation.</p>
+
+<h2>Core Concept</h2>
+<h3>Common Interpolation Methods</h3>
+<ul>
+  <li><strong>Nearest-neighbor</strong>: use the value of the closest sample — fast but very rough (staircase).</li>
+  <li><strong>Linear</strong>: straight line between adjacent samples — simple, smooth but introduces amplitude error in curved regions.</li>
+  <li><strong>Spline (cubic)</strong>: smooth polynomial through multiple points — much better curve-following.</li>
+  <li><strong>Sinc (ideal)</strong>: the theoretically perfect interpolation from the Nyquist theorem — requires infinite samples, approximated in practice.</li>
+</ul>
+
+<div class="callout">
+  <strong>The Nyquist theorem guarantees:</strong> A bandlimited signal can be <em>perfectly</em> reconstructed at any time instant from its samples using sinc interpolation. This is the mathematical foundation of the DAC.
+</div>
+
+<div class="visual-box">
+  <svg viewBox="0 0 500 170" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="10">
+    <line x1="20" y1="140" x2="480" y2="140" stroke="#8892b0" stroke-width="1"/>
+    <line x1="20" y1="20" x2="20" y2="145" stroke="#8892b0" stroke-width="1"/>
+
+    <!-- True signal -->
+    <path d="M20,100 C80,30 140,30 200,100 C260,155 320,140 380,90 C420,60 460,55 480,70"
+      stroke="#8892b0" stroke-width="1.5" fill="none" stroke-dasharray="5,3"/>
+
+    <!-- Samples (sparse) -->
+    <circle cx="20"  cy="100" r="5" fill="#ffd740"/>
+    <circle cx="100" cy="40"  r="5" fill="#ffd740"/>
+    <circle cx="180" cy="95"  r="5" fill="#ffd740"/>
+    <circle cx="260" cy="148" r="5" fill="#ffd740"/>
+    <circle cx="340" cy="110" r="5" fill="#ffd740"/>
+    <circle cx="420" cy="62"  r="5" fill="#ffd740"/>
+    <circle cx="480" cy="70"  r="5" fill="#ffd740"/>
+
+    <!-- Linear interpolation (piecewise straight lines) -->
+    <polyline points="20,100 100,40 180,95 260,148 340,110 420,62 480,70"
+      stroke="#ff5252" stroke-width="2" fill="none"/>
+
+    <!-- Spline interpolation (smooth curve through same points) -->
+    <path d="M20,100 C50,55 80,33 100,40 C130,50 155,85 180,95 C210,105 240,148 260,148 C290,148 320,125 340,110 C365,95 400,62 420,62 C445,62 465,67 480,70"
+      stroke="#00e5ff" stroke-width="2" fill="none"/>
+
+    <!-- Legend -->
+    <line x1="30" y1="18" x2="55" y2="18" stroke="#8892b0" stroke-dasharray="4,2" stroke-width="1.5"/>
+    <text x="60" y="21" fill="#8892b0">True signal</text>
+    <circle cx="130" cy="18" r="4" fill="#ffd740"/>
+    <text x="138" y="21" fill="#ffd740">Samples</text>
+    <line x1="210" y1="18" x2="235" y2="18" stroke="#ff5252" stroke-width="2"/>
+    <text x="240" y="21" fill="#ff5252">Linear</text>
+    <line x1="310" y1="18" x2="335" y2="18" stroke="#00e5ff" stroke-width="2"/>
+    <text x="340" y="21" fill="#00e5ff">Spline</text>
+  </svg>
+  <figcaption>Sparse samples (yellow dots), linear interpolation (red — piecewise straight), and cubic spline (blue — smooth curve). Spline much better follows the true signal shape.</figcaption>
+</div>
+
+<h2>Mathematical Foundation</h2>
+<h3>Ideal (Sinc) Interpolation</h3>
+<p>The Nyquist reconstruction formula:</p>
+
+$$x(t) = \sum_{n=-\infty}^{\infty} x[n] \cdot \text{sinc}\!\left(\frac{t - nT_s}{T_s}\right)$$
+
+<p>where $\text{sinc}(u) = \sin(\pi u)/(\pi u)$. Each sample contributes a sinc "tent" centred at its sample time, and they sum to reconstruct the continuous signal exactly (assuming bandlimited signal, $f_{max} < f_s/2$).</p>
+
+<h3>Polynomial Interpolation</h3>
+<p><strong>Linear:</strong> between samples $x[n]$ and $x[n+1]$, for $0 \leq \alpha < 1$:</p>
+
+$$x(nT_s + \alpha T_s) = (1-\alpha)\,x[n] + \alpha\,x[n+1]$$
+
+<p><strong>Cubic spline:</strong> fits a piecewise cubic polynomial with continuous first and second derivatives at every sample — much smoother, no kinks.</p>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="Sinc interpolation is the theoretically perfect method, guaranteed by the Nyquist theorem to reconstruct the original signal exactly when the signal is bandlimited. Linear and spline are approximations — sinc requires knowing all samples (infinite extent).">
+  <h3>Q1. Which interpolation method is theoretically perfect for bandlimited signals?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Linear interpolation</li>
+    <li class="quiz-option" data-correct="false">Cubic spline</li>
+    <li class="quiz-option" data-correct="true">Sinc interpolation</li>
+    <li class="quiz-option" data-correct="false">Nearest-neighbor</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Linear interpolation connects samples with straight lines, which introduces error in curved regions (it misses peaks and over-estimates curvature). Spline interpolation uses smooth polynomials and follows curves much better.">
+  <h3>Q2. Why is cubic spline generally better than linear interpolation for smooth signals?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Spline interpolation is always faster to compute</li>
+    <li class="quiz-option" data-correct="true">Spline uses smooth polynomials that respect curvature, reducing error in curved regions</li>
+    <li class="quiz-option" data-correct="false">Spline requires fewer samples</li>
+    <li class="quiz-option" data-correct="false">Spline avoids aliasing</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Interpolation can only work within the bandwidth already present in the signal. It cannot recover frequencies above fs/2 that were never captured. Upsampling followed by a lowpass filter is correct, but the lowpass only passes what was already there.">
+  <h3>Q3. Can interpolation reconstruct frequencies above the original Nyquist limit (fs/2)?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Yes, sinc interpolation can recover any frequency</li>
+    <li class="quiz-option" data-correct="false">Yes, if the polynomial order is high enough</li>
+    <li class="quiz-option" data-correct="true">No — interpolation cannot recover information that was never sampled</li>
+    <li class="quiz-option" data-correct="false">Yes, by zero-padding before interpolating</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 3.4 Interpolation Methods
+
+% Coarse samples
+fs_low  = 100;    % Low sampling rate
+fs_high = 1000;   % Target (fine) grid
+T = 0.2;
+
+t_low  = 0:1/fs_low:T;
+t_high = 0:1/fs_high:T;
+
+% True signal (bandlimited)
+f0 = 30;
+x_true = sin(2*pi*f0*t_high) + 0.5*sin(2*pi*2*f0*t_high);
+x_low  = sin(2*pi*f0*t_low)  + 0.5*sin(2*pi*2*f0*t_low);
+
+% Interpolation methods using interp1
+methods = {'nearest', 'linear', 'spline', 'pchip'};
+colors  = {'r', 'm', 'b', 'g'};
+
+figure('Name','Interpolation Methods');
+plot(t_high, x_true, 'k--', 'LineWidth', 2, 'DisplayName','True signal'); hold on;
+plot(t_low, x_low, 'ko', 'MarkerSize', 6, 'DisplayName','Samples');
+
+for i = 1:4
+  xi = interp1(t_low, x_low, t_high, methods{i});
+  err = rms(xi - x_true);
+  plot(t_high, xi, colors{i}, 'DisplayName', sprintf('%s (RMS err=%.4f)', methods{i}, err));
+end
+xlabel('Time (s)'); ylabel('Amplitude'); legend; title('Interpolation comparison');
+
+% Report errors
+fprintf('\nInterpolation RMS errors:\n');
+for i = 1:4
+  xi = interp1(t_low, x_low, t_high, methods{i});
+  fprintf('  %-10s : %.5f\n', methods{i}, rms(xi - x_true));
+end
+
+% Ideal sinc interpolation (MATLAB's resample = polyphase, close to sinc)
+x_resamp = resample(x_low, fs_high, fs_low);
+x_resamp = x_resamp(1:length(t_high));
+fprintf('  %-10s : %.5f\n', 'resample', rms(x_resamp - x_true));
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>Expected RMS error order (best to worst): <code>resample</code> (sinc-like) ≈ <code>spline</code> &lt; <code>linear</code> &lt; <code>nearest</code>. Nearest-neighbor will have the largest error because it ignores curvature entirely. Spline should come very close to the true signal for this smooth, bandlimited test signal.</p>
+</details>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Interpolation estimates signal values between samples.</li>
+    <li><strong>Ideal sinc</strong> interpolation is perfect for bandlimited signals — approximated by <code>resample()</code> in MATLAB.</li>
+    <li><strong>Cubic spline</strong> is a practical high-quality choice; linear is fast but less accurate.</li>
+    <li>Interpolation cannot recover information above the original Nyquist limit.</li>
+    <li>In MATLAB: <code>interp1(t, x, t_new, 'spline')</code> for general interpolation.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m3-quality/3.3-windowing'); return false;">← 3.3 Windowing</a>
+  <a href="#" onclick="loadTopic('m4-time-frequency/4.1-stft'); return false;">Next: Module 4 — STFT →</a>
+</div>

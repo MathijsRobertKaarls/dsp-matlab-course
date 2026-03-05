@@ -1,0 +1,220 @@
+<h1>5.2 — The Z-Transform</h1>
+<p class="topic-meta">Module 5 · Filter Design · ~25 min</p>
+
+<h2>Introduction</h2>
+<p>The Z-transform is to discrete-time systems what the Laplace transform is to continuous-time systems. It converts difference equations into algebraic equations, making filter analysis and design elegant. It's the mathematical foundation for understanding stability, frequency response, and the relationship between filter coefficients and filter behavior.</p>
+
+<h2>Core Concept</h2>
+<h3>Definition</h3>
+<p>The Z-transform of a sequence $x[n]$ is:</p>
+
+$$X(z) = \sum_{n=-\infty}^{\infty} x[n]\, z^{-n}$$
+
+<p>where $z$ is a complex variable. Think of $z^{-1}$ as a <strong>unit delay operator</strong> — multiplying by $z^{-1}$ delays the signal by one sample.</p>
+
+<h3>Region of Convergence (ROC)</h3>
+<p>The Z-transform only converges for certain values of $z$. The ROC is the set of $z$ where the sum converges. Key rules:</p>
+<ul>
+  <li>Causal systems: ROC is the <strong>exterior</strong> of a circle (outside some radius)</li>
+  <li>Anti-causal systems: ROC is the <strong>interior</strong> of a circle</li>
+  <li>A system is stable if the ROC includes the <strong>unit circle</strong> $|z| = 1$</li>
+</ul>
+
+<h3>The Unit Circle and Frequency Response</h3>
+<p>Evaluating $H(z)$ on the unit circle ($z = e^{j\omega}$) gives the <strong>DTFT</strong> — i.e., the frequency response:</p>
+
+$$H(e^{j\omega}) = H(z)\bigg|_{z=e^{j\omega}}$$
+
+<p>This is the critical link: the Z-transform evaluated on the unit circle is exactly the frequency response of the filter.</p>
+
+<div class="visual-box">
+  <svg viewBox="0 0 280 220" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="10">
+    <!-- Complex plane -->
+    <line x1="140" y1="10" x2="140" y2="210" stroke="#8892b0" stroke-width="1"/>
+    <line x1="10" y1="110" x2="270" y2="110" stroke="#8892b0" stroke-width="1"/>
+    <text x="275" y="113" fill="#8892b0">Re</text>
+    <text x="143" y="10" fill="#8892b0">Im</text>
+    <!-- Unit circle -->
+    <circle cx="140" cy="110" r="80" fill="none" stroke="#00e5ff" stroke-width="2"/>
+    <text x="140" y="35" text-anchor="middle" fill="#00e5ff" font-size="9">Unit circle |z|=1</text>
+    <text x="140" y="27" text-anchor="middle" fill="#00e5ff" font-size="9">(frequency response)</text>
+    <!-- Pole (x) inside -->
+    <text x="115" y="82" fill="#ff5252" font-size="14" font-weight="bold">×</text>
+    <text x="115" y="72" fill="#ff5252" font-size="9">pole (IIR)</text>
+    <!-- Zero (o) on circle -->
+    <circle cx="185" cy="75" r="5" fill="none" stroke="#ffd740" stroke-width="2"/>
+    <text x="193" y="70" fill="#ffd740" font-size="9">zero</text>
+    <!-- Labels -->
+    <text x="215" y="113" fill="#8892b0">1</text>
+    <text x="58" y="113" fill="#8892b0">-1</text>
+    <text x="143" y="33" fill="#8892b0">j</text>
+    <text x="143" y="195" fill="#8892b0">-j</text>
+    <!-- Rotation angle -->
+    <path d="M220,110 A80,80 0 0,0 185,47" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <text x="230" y="80" fill="#7c3aed" font-size="9">ω=2πf/fs</text>
+  </svg>
+  <figcaption>Z-plane: the unit circle (blue) corresponds to the frequency axis. The frequency response is H(z) evaluated on the unit circle. Poles (×) attract the response; zeros (○) null it.</figcaption>
+</div>
+
+<h3>Transfer Function</h3>
+<p>For an LTI system described by coefficients $(b_k, a_k)$, the <strong>transfer function</strong> is:</p>
+
+$$H(z) = \frac{B(z)}{A(z)} = \frac{\sum_{k=0}^{M} b_k z^{-k}}{1 + \sum_{k=1}^{N} a_k z^{-k}}$$
+
+<p>The roots of $B(z) = 0$ are the <strong>zeros</strong>; the roots of $A(z) = 0$ are the <strong>poles</strong>. The locations of poles and zeros in the Z-plane determine the filter's entire frequency response and stability.</p>
+
+<h2>Mathematical Foundation</h2>
+<h3>Common Z-transform pairs</h3>
+
+<table style="width:100%;border-collapse:collapse;font-size:0.88rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">$x[n]$</th>
+    <th style="padding:0.4rem 0.6rem">$X(z)$</th>
+    <th style="padding:0.4rem 0.6rem">ROC</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.4rem 0.6rem">$\delta[n]$</td>
+    <td style="padding:0.4rem 0.6rem">$1$</td>
+    <td style="padding:0.4rem 0.6rem">All $z$</td>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.4rem 0.6rem">$u[n]$ (unit step)</td>
+    <td style="padding:0.4rem 0.6rem">$\frac{1}{1-z^{-1}}$</td>
+    <td style="padding:0.4rem 0.6rem">$|z| > 1$</td>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.4rem 0.6rem">$a^n u[n]$</td>
+    <td style="padding:0.4rem 0.6rem">$\frac{1}{1-az^{-1}}$</td>
+    <td style="padding:0.4rem 0.6rem">$|z| > |a|$</td>
+  </tr>
+  <tr>
+    <td style="padding:0.4rem 0.6rem">$\delta[n-k]$</td>
+    <td style="padding:0.4rem 0.6rem">$z^{-k}$</td>
+    <td style="padding:0.4rem 0.6rem">$z \neq 0$</td>
+  </tr>
+</table>
+
+<h3>Z-transform properties</h3>
+<ul>
+  <li><strong>Time shift</strong>: $x[n-k] \leftrightarrow z^{-k} X(z)$ — delay by $k$ = multiply by $z^{-k}$</li>
+  <li><strong>Convolution</strong>: $x * h \leftrightarrow X(z) \cdot H(z)$ — convolution → multiplication</li>
+  <li><strong>Linearity</strong>: $ax + by \leftrightarrow aX(z) + bY(z)$</li>
+</ul>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="The frequency response H(e^jω) is obtained by evaluating H(z) on the unit circle |z|=1, i.e., substituting z = e^jω. This is why the unit circle is so important in Z-transform analysis.">
+  <h3>Q1. To obtain the frequency response from the transfer function $H(z)$, you evaluate it at:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">$z = 0$</li>
+    <li class="quiz-option" data-correct="false">$z = \infty$</li>
+    <li class="quiz-option" data-correct="true">$z = e^{j\omega}$ (the unit circle)</li>
+    <li class="quiz-option" data-correct="false">$z = 1$</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="A system is BIBO stable if and only if all poles are strictly inside the unit circle (|pole| < 1). Poles on or outside the unit circle lead to unbounded, unstable behavior.">
+  <h3>Q2. A discrete-time LTI system is stable if and only if:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">All poles are outside the unit circle</li>
+    <li class="quiz-option" data-correct="false">All zeros are inside the unit circle</li>
+    <li class="quiz-option" data-correct="true">All poles are strictly inside the unit circle ($|p| < 1$)</li>
+    <li class="quiz-option" data-correct="false">The number of zeros equals the number of poles</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="z^{-1} represents a delay of one sample. The time-shift property: Z{x[n-1]} = z^{-1}X(z). This is why difference equations translate directly to rational functions of z^{-1} in the Z-domain.">
+  <h3>Q3. In the Z-transform, $z^{-1}$ represents:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">A frequency of $1/(2\pi)$ Hz</li>
+    <li class="quiz-option" data-correct="true">A delay of one sample</li>
+    <li class="quiz-option" data-correct="false">The DC component</li>
+    <li class="quiz-option" data-correct="false">An advance of one sample</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 5.2 Z-Transform and Transfer Function Analysis
+
+%% Part A — Simple pole-zero analysis
+% First-order IIR: y[n] = x[n] + 0.9*y[n-1]
+% Transfer function: H(z) = 1 / (1 - 0.9*z^{-1})
+b = [1];
+a = [1, -0.9];   % MATLAB convention: a(1)=1, rest are -a_k coefficients
+
+figure('Name','Z-Plane and Frequency Response');
+subplot(1,2,1);
+zplane(b, a);     % Pole-zero plot on the unit circle
+title('Pole-Zero Plot'); grid on;
+
+subplot(1,2,2);
+freqz(b, a, 512);
+title('Frequency Response');
+
+%% Part B — Compare different pole locations
+pole_radii = [0.5, 0.8, 0.95, 1.0];  % last one is unstable!
+
+figure('Name','Effect of Pole Radius on Frequency Response');
+for i = 1:4
+  r = pole_radii(i);
+  a_i = [1, -r];
+  subplot(2,2,i);
+  if r < 1.0
+    [H, f] = freqz([1], a_i, 512, 1000);
+    plot(f, 20*log10(abs(H)));
+    title(sprintf('Pole at r=%.2f (stable)', r));
+  else
+    title(sprintf('Pole at r=%.2f → UNSTABLE', r));
+    text(0.5, 0.5, 'Diverges!', 'HorizontalAlignment','center','Units','normalized','FontSize',14,'Color','r');
+  end
+  xlabel('Hz'); ylabel('dB'); grid on;
+end
+
+%% Part C — Bandpass filter via pole-zero placement
+% Place two conjugate poles near the desired frequency (angular)
+fs = 1000;
+f0 = 100;   % desired center frequency
+omega0 = 2*pi*f0/fs;   % digital frequency
+r = 0.95;   % pole radius (close to 1 = narrow, high-Q)
+
+% Poles at r*e^{±jω₀}
+poles = r * exp(1j*omega0);
+poles = [poles; conj(poles)];
+
+% Zeros at origin (for a simple design)
+zeros_z = [0; 0];
+
+[b_pz, a_pz] = zp2tf(zeros_z, poles, 1);
+
+figure('Name','Pole-Zero Bandpass Design');
+subplot(1,2,1); zplane(b_pz, a_pz); title(sprintf('Poles near %dHz (r=%.2f)', f0, r));
+subplot(1,2,2); freqz(b_pz, a_pz, 1024, fs);
+title(sprintf('Bandpass centered at %dHz', f0));
+
+fprintf('\nPole locations:\n');
+fprintf('  |p| = %.3f (should be < 1 for stability)\n', abs(roots(a_pz)));
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>In Part B, notice how poles close to the unit circle (r=0.95) produce a very sharp, resonant peak in the frequency response. At r=1.0, the pole is ON the unit circle — the system is marginally unstable (oscillates forever). Part C demonstrates direct pole-zero design: placing conjugate poles near the unit circle at the desired frequency creates a bandpass filter.</p>
+</details>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Z-transform: $X(z) = \sum x[n] z^{-n}$. $z^{-1}$ = one-sample delay.</li>
+    <li>Transfer function $H(z) = B(z)/A(z)$; roots of $B$ = zeros, roots of $A$ = poles.</li>
+    <li>Frequency response = $H(z)$ evaluated on the unit circle: $H(e^{j\omega})$.</li>
+    <li>Stable ↔ all poles strictly inside the unit circle ($|p| < 1$).</li>
+    <li>In MATLAB: <code>zplane(b,a)</code> for pole-zero plot, <code>freqz(b,a)</code> for frequency response.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m5-filters/5.1-filter-design'); return false;">← 5.1 Filter Design</a>
+  <a href="#" onclick="loadTopic('m5-filters/5.3-difference-equation'); return false;">Next: 5.3 Difference Equation →</a>
+</div>

@@ -1,0 +1,210 @@
+<h1>5.4 — Block Diagrams</h1>
+<p class="topic-meta">Module 5 · Filter Design · ~15 min</p>
+
+<h2>Introduction</h2>
+<p>A block diagram is the graphical language of DSP — a way to visualize signal flow through a system. Just as a circuit schematic describes an electronic system with standard symbols, a block diagram describes a DSP algorithm with standard building blocks. Reading and drawing block diagrams is an essential skill for communicating filter designs.</p>
+
+<h2>Core Concept</h2>
+<h3>Standard Building Blocks</h3>
+<p>Every DSP block diagram is built from three primitive elements:</p>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 170" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="11">
+
+    <!-- DELAY (z^-1) -->
+    <text x="80" y="14" text-anchor="middle" fill="#8892b0">Unit Delay (z⁻¹)</text>
+    <line x1="10" y1="50" x2="40" y2="50" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ab)"/>
+    <rect x="40" y="35" width="50" height="30" rx="4" fill="none" stroke="#00e5ff" stroke-width="2"/>
+    <text x="65" y="54" text-anchor="middle" fill="#00e5ff">z⁻¹</text>
+    <line x1="90" y1="50" x2="120" y2="50" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ab)"/>
+    <text x="10" y="45" fill="#8892b0">x[n]</text>
+    <text x="122" y="45" fill="#8892b0">x[n−1]</text>
+    <text x="65" y="95" text-anchor="middle" fill="#8892b0" font-size="9">Output is input delayed 1 sample</text>
+
+    <!-- MULTIPLIER (coefficient) -->
+    <text x="275" y="14" text-anchor="middle" fill="#8892b0">Multiplier (coefficient)</text>
+    <line x1="200" y1="50" x2="230" y2="50" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ab)"/>
+    <polygon points="230,35 280,50 230,65" fill="none" stroke="#ffd740" stroke-width="2"/>
+    <text x="255" y="53" fill="#ffd740">b</text>
+    <line x1="280" y1="50" x2="310" y2="50" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ab)"/>
+    <text x="200" y="45" fill="#8892b0">x[n]</text>
+    <text x="312" y="45" fill="#8892b0">b·x[n]</text>
+    <text x="275" y="95" text-anchor="middle" fill="#8892b0" font-size="9">Scales signal by constant b</text>
+
+    <!-- ADDER -->
+    <text x="430" y="14" text-anchor="middle" fill="#8892b0">Adder (summing junction)</text>
+    <line x1="370" y1="40" x2="405" y2="53" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ab)"/>
+    <line x1="370" y1="70" x2="405" y2="57" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ab)"/>
+    <circle cx="415" cy="55" r="12" fill="none" stroke="#7c3aed" stroke-width="2"/>
+    <text x="415" y="59" text-anchor="middle" fill="#7c3aed">+</text>
+    <line x1="427" y1="55" x2="460" y2="55" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ab)"/>
+    <text x="363" y="38" fill="#8892b0">x₁[n]</text>
+    <text x="363" y="74" fill="#8892b0">x₂[n]</text>
+    <text x="462" y="52" fill="#8892b0">x₁+x₂</text>
+    <text x="430" y="95" text-anchor="middle" fill="#8892b0" font-size="9">Sums two (or more) signals</text>
+
+    <defs>
+      <marker id="ab" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+        <path d="M0,0 L5,2.5 L0,5 Z" fill="#8892b0"/>
+      </marker>
+    </defs>
+
+    <!-- Full example: first-order IIR -->
+    <text x="260" y="135" text-anchor="middle" fill="#8892b0">Example: y[n] = b₀·x[n] + b₁·x[n−1] − a₁·y[n−1]</text>
+
+    <!-- input -->
+    <line x1="10" y1="155" x2="40" y2="155" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ab)"/>
+    <!-- b0 mult -->
+    <polygon points="40,145 65,155 40,165" fill="none" stroke="#ffd740" stroke-width="1.5"/>
+    <text x="52" y="153" fill="#ffd740" font-size="9">b₀</text>
+    <line x1="65" y1="155" x2="130" y2="155" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ab)"/>
+    <!-- adder 1 -->
+    <circle cx="142" cy="155" r="10" fill="none" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="142" y="159" text-anchor="middle" fill="#7c3aed">+</text>
+    <!-- b1 path from node above b0 -->
+    <line x1="50" y1="155" x2="50" y2="175" stroke="#8892b0" stroke-width="1"/>
+    <!-- (simplified: just show the structure) -->
+    <line x1="152" y1="155" x2="200" y2="155" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ab)"/>
+    <text x="205" y="151" fill="#00e5ff">y[n]</text>
+    <!-- feedback -->
+    <line x1="198" y1="155" x2="198" y2="175" stroke="#ff5252" stroke-width="1"/>
+    <rect x="158" y="168" width="25" height="14" rx="2" fill="none" stroke="#8892b0" stroke-width="1"/>
+    <text x="170" y="178" text-anchor="middle" fill="#8892b0" font-size="8">z⁻¹</text>
+    <line x1="198" y1="175" x2="183" y2="175" stroke="#ff5252" stroke-width="1" marker-end="url(#ab)"/>
+    <!-- -a1 mult back to adder -->
+    <polygon points="110,168 135,175 110,182" fill="none" stroke="#ff5252" stroke-width="1.2"/>
+    <text x="120" y="179" fill="#ff5252" font-size="8">−a₁</text>
+    <line x1="110" y1="175" x2="142" y2="165" stroke="#ff5252" stroke-width="1" marker-end="url(#ab)"/>
+  </svg>
+  <figcaption>Three building blocks: delay (z⁻¹), multiplier (triangle), adder (circle with +). Below: a first-order IIR assembled from these blocks.</figcaption>
+</div>
+
+<h3>Reading a Block Diagram</h3>
+<p>Follow the signal flow arrows:</p>
+<ol>
+  <li>Signals on arrows represent sequences (values at each sample $n$).</li>
+  <li>Each $z^{-1}$ box introduces a one-sample delay.</li>
+  <li>Triangles multiply by a constant coefficient.</li>
+  <li>Circles sum their inputs.</li>
+  <li>A line branching (fork) splits one signal into two paths — both carry the same value.</li>
+</ol>
+
+<h3>Signal Flow Graph (SFG)</h3>
+<p>An alternative notation uses nodes and directed edges (branches) with weights. Each node sums all incoming branch values. This compact representation is equivalent to the block diagram and is useful for formal analysis.</p>
+
+<h2>Mathematical Foundation</h2>
+<p>From a block diagram you can directly write the difference equation and the transfer function. For a second-order IIR (Direct Form I):</p>
+
+$$y[n] = b_0 x[n] + b_1 x[n-1] + b_2 x[n-2] - a_1 y[n-1] - a_2 y[n-2]$$
+
+$$H(z) = \frac{b_0 + b_1 z^{-1} + b_2 z^{-2}}{1 + a_1 z^{-1} + a_2 z^{-2}}$$
+
+<p>Reading coefficients directly from the block diagram (multiplier weights) gives both representations simultaneously.</p>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="A z⁻¹ block (unit delay) introduces a one-sample delay: its output at time n is its input at time n-1. This is the fundamental memory element in discrete-time systems.">
+  <h3>Q1. In a DSP block diagram, a box labeled $z^{-1}$ represents:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">A multiplier with gain −1</li>
+    <li class="quiz-option" data-correct="true">A one-sample delay: output at time n = input at time n−1</li>
+    <li class="quiz-option" data-correct="false">An integrator</li>
+    <li class="quiz-option" data-correct="false">A frequency shift by 1 Hz</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="A signal branch (wire splitting into two) copies the signal to multiple destinations — both paths carry exactly the same value. This is not a summing junction; it distributes one signal to multiple consumers.">
+  <h3>Q2. In a block diagram, when a signal wire branches (splits into two paths), it means:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">The signal power is halved on each branch</li>
+    <li class="quiz-option" data-correct="true">The same signal value is distributed to both paths — no scaling</li>
+    <li class="quiz-option" data-correct="false">The two branches are added together</li>
+    <li class="quiz-option" data-correct="false">One branch is delayed relative to the other</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="A feedback loop (output connected back to an earlier stage via a delayed path) is the hallmark of an IIR filter. FIR filters have no feedback — all paths are forward only.">
+  <h3>Q3. Which feature of a block diagram indicates an IIR (recursive) filter?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Multiple adders</li>
+    <li class="quiz-option" data-correct="false">A multiplier with a very large coefficient</li>
+    <li class="quiz-option" data-correct="true">A feedback path — the output (or a delayed version) is fed back to an earlier summing junction</li>
+    <li class="quiz-option" data-correct="false">More than two delay elements</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 5.4 Block Diagram → Difference Equation → Filter
+
+%% Part A — Extract coefficients and draw pole-zero / freq response
+% Design: 4th-order Butterworth lowpass at 200 Hz, fs=1000 Hz
+[b, a] = butter(4, 200/(1000/2), 'low');
+
+fprintf('=== 4th-order Butterworth Lowpass ===\n');
+fprintf('b coefficients (feedforward): '); fprintf('%.6f ', b); fprintf('\n');
+fprintf('a coefficients (feedback):    '); fprintf('%.6f ', a); fprintf('\n\n');
+
+% Write out the difference equation
+fprintf('Difference equation:\ny[n] = ');
+for k = 0:length(b)-1
+  if k == 0
+    fprintf('%.4f*x[n]', b(k+1));
+  else
+    fprintf(' + %.4f*x[n-%d]', b(k+1), k);
+  end
+end
+for k = 1:length(a)-1
+  fprintf(' - %.4f*y[n-%d]', a(k+1), k);
+end
+fprintf('\n');
+
+figure('Name','Block Diagram Verification');
+subplot(1,2,1); zplane(b, a); title('Pole-Zero Plot');
+subplot(1,2,2); freqz(b, a, 512, 1000); title('Frequency Response');
+
+%% Part B — Second-order sections (SOS): numerically stable implementation
+% For high-order filters, direct form can have numerical issues
+% Split into cascaded second-order sections
+[sos, g] = tf2sos(b, a);
+fprintf('\nSecond-Order Sections (SOS):\n');
+disp(sos);
+
+% Apply using sosfilt (more numerically stable)
+fs = 1000;  t = 0:1/fs:1-1/fs;
+x = sin(2*pi*50*t) + sin(2*pi*400*t) + 0.3*randn(size(t));
+y_direct = filter(b, a, x);
+y_sos    = sosfilt(sos, x) * g;
+
+fprintf('Max SOS vs Direct difference: %.2e\n', max(abs(y_direct - y_sos)));
+
+figure('Name','Direct vs SOS');
+subplot(2,1,1); plot(t(1:300), x(1:300)); title('Input: 50Hz + 400Hz + noise');
+subplot(2,1,2);
+plot(t(1:300), y_sos(1:300), 'b', 'DisplayName','SOS (stable)'); hold on;
+plot(t(1:300), y_direct(1:300), 'r--', 'DisplayName','Direct form');
+title('Filtered output'); legend;
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>The difference equation printed in Part A translates directly to a block diagram: each b coefficient is a feedforward multiplier, each a coefficient is a feedback multiplier. The SOS form in Part B splits the high-order filter into cascaded 2nd-order "biquad" sections — this avoids numerical precision problems that can occur with high-order direct-form implementations.</p>
+</details>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Block diagrams use three symbols: delay ($z^{-1}$), multiplier, and adder.</li>
+    <li>Feedback loops → IIR; no feedback → FIR.</li>
+    <li>You can directly read off the difference equation and transfer function from a block diagram.</li>
+    <li>High-order filters should be implemented as cascaded second-order sections (SOS/biquad) for numerical stability.</li>
+    <li>In MATLAB: <code>tf2sos(b,a)</code> to convert, <code>sosfilt(sos,x)</code> to apply.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m5-filters/5.3-difference-equation'); return false;">← 5.3 Difference Equation</a>
+  <a href="#" onclick="loadTopic('m5-filters/5.5-bode-diagram'); return false;">Next: 5.5 Bode Diagram →</a>
+</div>

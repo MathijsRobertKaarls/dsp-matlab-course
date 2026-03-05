@@ -1,0 +1,204 @@
+<h1>2.3 — DFT vs FFT</h1>
+<p class="topic-meta">Module 2 · Frequency Domain · ~20 min</p>
+
+<h2>Introduction</h2>
+<p>We've been using <code>fft()</code> in MATLAB without worrying about what's happening inside. Now let's open the hood. The <strong>Discrete Fourier Transform (DFT)</strong> is the formula that computes the spectrum of a finite digital signal. The <strong>Fast Fourier Transform (FFT)</strong> is a clever algorithm that computes the exact same result, but dramatically faster.</p>
+<p>The DFT on $N = 1{,}000{,}000$ samples takes about $10^{12}$ operations naively. The FFT takes about $20{,}000{,}000$ — 50,000 times fewer. That difference is why real-time spectrum analyzers, audio processing, and communications are possible.</p>
+
+<!-- ===== CORE CONCEPT ===== -->
+<h2>Core Concept</h2>
+
+<h3>The DFT</h3>
+<p>Given $N$ samples $x[0], x[1], \ldots, x[N-1]$, the DFT computes $N$ complex spectral values:</p>
+
+$$X[k] = \sum_{n=0}^{N-1} x[n] \cdot e^{-j2\pi kn/N}, \quad k = 0, 1, \ldots, N-1$$
+
+<p>Each $X[k]$ is the component at frequency:</p>
+
+$$f_k = k \cdot \frac{f_s}{N}$$
+
+<p>So the frequency resolution (distance between adjacent bins) is:</p>
+
+$$\Delta f = \frac{f_s}{N}$$
+
+<div class="callout">
+  <strong>Key insight:</strong> More samples $N$ → finer frequency resolution $\Delta f = f_s/N$. But it doesn't change the highest representable frequency (that's still $f_s/2$). Think of it as a ruler: more sample = more tick marks between 0 and $f_s/2$.
+</div>
+
+<h3>The FFT — Cooley-Tukey Algorithm</h3>
+<p>The FFT exploits the fact that the DFT computation has a lot of redundancy. By recursively splitting the $N$-point DFT into two $N/2$-point DFTs (the "divide and conquer" approach), it reduces complexity from:</p>
+
+$$\mathcal{O}(N^2) \quad\to\quad \mathcal{O}(N \log_2 N)$$
+
+<p>This works best when $N$ is a power of 2 (e.g., 256, 512, 1024, 2048...). MATLAB's <code>fft()</code> automatically uses the FFT algorithm.</p>
+
+<h3>DFT Properties You Must Know</h3>
+<ul>
+  <li><strong>Linearity</strong>: $\text{DFT}\{ax + by\} = a\,X[k] + b\,Y[k]$</li>
+  <li><strong>Circular shift</strong>: Time shift → phase rotation in frequency domain</li>
+  <li><strong>Convolution theorem</strong>: Time convolution ↔ frequency multiplication</li>
+  <li><strong>Parseval's</strong>: $\sum|x[n]|^2 = \frac{1}{N}\sum|X[k]|^2$</li>
+</ul>
+
+<h3>Interpreting FFT Output</h3>
+<p>MATLAB's <code>fft(x)</code> returns $N$ complex values:</p>
+<ul>
+  <li>$X[0]$: DC component (mean × N)</li>
+  <li>$X[1]$ to $X[N/2-1]$: positive frequencies ($f_s/N$ to $f_s/2 - f_s/N$)</li>
+  <li>$X[N/2]$: the Nyquist component</li>
+  <li>$X[N/2+1]$ to $X[N-1]$: negative frequencies (mirror of positive for real signals)</li>
+</ul>
+<p>Use <code>fftshift()</code> to center the spectrum at DC (useful for visualizing two-sided spectra).</p>
+
+<!-- ===== MATH ===== -->
+<h2>Mathematical Foundation</h2>
+
+<h3>DFT as a matrix operation</h3>
+<p>The DFT can be written as a matrix multiply $\mathbf{X} = \mathbf{W} \mathbf{x}$, where the $N \times N$ DFT matrix $\mathbf{W}$ has entries:</p>
+
+$$W_{kn} = e^{-j2\pi kn/N} = W_N^{kn}, \quad W_N = e^{-j2\pi/N}$$
+
+<p>This naive multiply is $\mathcal{O}(N^2)$. The FFT achieves $\mathcal{O}(N \log_2 N)$ by exploiting the periodicity and symmetry of $W_N^{kn}$.</p>
+
+<h3>Frequency axis construction</h3>
+<p>For a signal of $N$ samples at rate $f_s$:</p>
+<ul>
+  <li>One-sided frequency axis (0 to $f_s/2$): <code>f = (0:N/2-1) * fs/N</code></li>
+  <li>Two-sided (centered): <code>f = (-N/2:N/2-1) * fs/N</code> (use with <code>fftshift</code>)</li>
+</ul>
+
+<!-- ===== QUIZ ===== -->
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="Frequency resolution = fs/N. With fs=1000 and N=500, Δf = 1000/500 = 2 Hz. To get 1 Hz resolution you'd need N=1000 samples.">
+  <h3>Q1. A signal is sampled at $f_s = 1000$ Hz. You compute the DFT with $N = 500$ samples. What is the frequency resolution?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">1 Hz</li>
+    <li class="quiz-option" data-correct="true">2 Hz</li>
+    <li class="quiz-option" data-correct="false">0.5 Hz</li>
+    <li class="quiz-option" data-correct="false">500 Hz</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="The FFT reduces complexity from O(N²) to O(N log₂N). This is purely an algorithmic speedup — the mathematical result (DFT values) is identical.">
+  <h3>Q2. How does the FFT differ from the DFT?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">The FFT gives an approximate result while the DFT is exact</li>
+    <li class="quiz-option" data-correct="false">The FFT only works for audio signals</li>
+    <li class="quiz-option" data-correct="true">The FFT computes the same result as the DFT, but in O(N log N) instead of O(N²) operations</li>
+    <li class="quiz-option" data-correct="false">The FFT uses fewer samples than the DFT</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="fftshift reorders the output so that DC (k=0) is in the center, with negative frequencies on the left and positive on the right. This gives a symmetric, easy-to-read two-sided spectrum.">
+  <h3>Q3. What does <code>fftshift()</code> do to an FFT output?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Removes the DC component</li>
+    <li class="quiz-option" data-correct="false">Applies a Hamming window</li>
+    <li class="quiz-option" data-correct="true">Rearranges the output so DC is centered, with negative frequencies on the left</li>
+    <li class="quiz-option" data-correct="false">Doubles the frequency resolution</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<!-- ===== MATLAB ===== -->
+<h2>MATLAB Exercise</h2>
+<p>Compare DFT (manual loop) vs FFT timing, and explore frequency resolution.</p>
+
+<pre><code class="language-matlab">%% 2.3 DFT vs FFT
+
+%% Part A — Manual DFT vs fft() (check they agree)
+N = 64;
+x = randn(1, N);   % Random test signal
+
+% Manual DFT
+X_dft = zeros(1, N);
+for k = 0:N-1
+  for n = 0:N-1
+    X_dft(k+1) = X_dft(k+1) + x(n+1) * exp(-1j*2*pi*k*n/N);
+  end
+end
+
+X_fft = fft(x);
+fprintf('Max DFT vs FFT difference: %.2e\n', max(abs(X_dft - X_fft)));
+
+%% Part B — Timing: O(N²) vs O(N log N)
+sizes = [64, 128, 256, 512, 1024, 2048, 4096];
+t_dft = zeros(size(sizes));
+t_fft = zeros(size(sizes));
+
+for i = 1:length(sizes)
+  N = sizes(i);
+  x_test = randn(1, N);
+
+  % Manual DFT timing (for moderate N only)
+  if N <= 512
+    tic;
+    X_m = zeros(1,N);
+    n_vec = 0:N-1;
+    for k = 0:N-1
+      X_m(k+1) = sum(x_test .* exp(-1j*2*pi*k*n_vec/N));
+    end
+    t_dft(i) = toc;
+  else
+    t_dft(i) = NaN;   % Too slow to bother
+  end
+
+  % FFT timing
+  tic;
+  for rep = 1:100; fft(x_test); end
+  t_fft(i) = toc / 100;
+end
+
+figure('Name','DFT vs FFT Timing');
+semilogy(sizes, t_dft, 'r-o', 'DisplayName', 'Manual DFT O(N²)'); hold on;
+semilogy(sizes, t_fft, 'b-o', 'DisplayName', 'FFT O(N log N)');
+xlabel('N (signal length)'); ylabel('Time (s)');
+title('Computation Time: DFT vs FFT'); legend; grid on;
+
+%% Part C — Frequency resolution
+fs = 1000;
+f0 = 100;
+
+for N = [50, 200, 1000]
+  t = (0:N-1)/fs;
+  x = sin(2*pi*f0*t);
+  X = fft(x);
+  f_ax = (0:N/2-1)*fs/N;
+  figure('Name', sprintf('N=%d',N));
+  stem(f_ax, abs(X(1:N/2))*2/N, 'filled', 'MarkerSize',3);
+  title(sprintf('N=%d, Δf=%.1f Hz', N, fs/N));
+  xlabel('Hz'); ylabel('|X[k]|'); xlim([0 300]);
+  xline(f0,'r--','100 Hz');
+end
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint — Timing results</summary>
+  <p>The DFT vs FFT time difference becomes dramatic at larger N. At N=512, FFT is likely 10-50× faster than the manual loop. The timing plot on a log scale should show the DFT growing much steeper (parabolic) than the FFT (nearly linear). The "max difference" in Part A should be on the order of 1e-12 — numerical noise, not a real error.</p>
+</details>
+
+<h3>Exercise Questions</h3>
+<ol>
+  <li>With $f_s = 1000$ Hz and $N = 50$, what is the frequency resolution $\Delta f$? Can you precisely locate a 100 Hz component?</li>
+  <li>Compare Part C plots: at what $N$ does the 100 Hz peak become a clean, narrow spike?</li>
+  <li>What is the DFT output at $k = 0$ ($X[0]$) for a zero-mean signal? Verify by setting <code>x = x - mean(x)</code> and checking <code>abs(X(1))</code>.</li>
+</ol>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>The <strong>DFT</strong> computes $N$ spectral values from $N$ samples: $X[k] = \sum x[n] e^{-j2\pi kn/N}$.</li>
+    <li>Frequency resolution: $\Delta f = f_s/N$ — more samples = finer resolution.</li>
+    <li>The <strong>FFT</strong> computes the same result in $\mathcal{O}(N \log N)$ instead of $\mathcal{O}(N^2)$.</li>
+    <li>MATLAB's <code>fft()</code> uses FFT automatically; works best with $N = 2^k$.</li>
+    <li>Use <code>fftshift()</code> to center the spectrum at DC for two-sided display.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m2-frequency/2.2-aliasing'); return false;">← 2.2 Aliasing</a>
+  <a href="#" onclick="loadTopic('m2-frequency/2.4-dac-drawback'); return false;">Next: 2.4 Drawback of a DAC →</a>
+</div>

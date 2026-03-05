@@ -1,0 +1,206 @@
+<h1>4.2 — Wavelets</h1>
+<p class="topic-meta">Module 4 · Time-Frequency Analysis · ~25 min</p>
+
+<h2>Introduction</h2>
+<p>The STFT uses the same window length at every frequency — a fixed-size "magnifying glass" sliding across time. Wavelets break this limitation by using windows that automatically shrink at high frequencies and grow at low frequencies. This gives high time resolution where it's needed (fast events, high frequencies) and high frequency resolution where it's needed (slow events, low frequencies) — simultaneously.</p>
+<p>This <strong>multi-resolution analysis</strong> is why wavelets are used in JPEG2000, ECG denoising, seismology, and financial time-series analysis.</p>
+
+<h2>Core Concept</h2>
+<h3>The Mother Wavelet</h3>
+<p>A wavelet transform is built from a single prototype function — the <strong>mother wavelet</strong> $\psi(t)$. All wavelets used in the transform are <em>scaled</em> (stretched/compressed) and <em>shifted</em> (translated) versions of it:</p>
+
+$$\psi_{a,b}(t) = \frac{1}{\sqrt{a}} \psi\!\left(\frac{t-b}{a}\right)$$
+
+<p>where $a > 0$ is the <strong>scale</strong> (large $a$ = stretched = low frequency) and $b$ is the <strong>translation</strong> (time position).</p>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 160" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="10">
+    <!-- STFT: fixed window at all freqs -->
+    <text x="120" y="14" text-anchor="middle" fill="#8892b0">STFT: fixed window</text>
+    <line x1="10" y1="150" x2="230" y2="150" stroke="#8892b0" stroke-width="1"/>
+    <line x1="10" y1="20" x2="10" y2="155" stroke="#8892b0" stroke-width="1"/>
+    <text x="5" y="40" fill="#ff5252" text-anchor="end" font-size="9">high f</text>
+    <text x="5" y="90" fill="#ffd740" text-anchor="end" font-size="9">mid f</text>
+    <text x="5" y="140" fill="#00c853" text-anchor="end" font-size="9">low f</text>
+    <!-- Fixed-size boxes -->
+    <rect x="20" y="26" width="35" height="20" fill="#ff5252" opacity="0.6" rx="2"/>
+    <rect x="70" y="26" width="35" height="20" fill="#ff5252" opacity="0.6" rx="2"/>
+    <rect x="120" y="26" width="35" height="20" fill="#ff5252" opacity="0.6" rx="2"/>
+    <rect x="170" y="26" width="35" height="20" fill="#ff5252" opacity="0.6" rx="2"/>
+    <rect x="20" y="78" width="35" height="20" fill="#ffd740" opacity="0.6" rx="2"/>
+    <rect x="70" y="78" width="35" height="20" fill="#ffd740" opacity="0.6" rx="2"/>
+    <rect x="120" y="78" width="35" height="20" fill="#ffd740" opacity="0.6" rx="2"/>
+    <rect x="170" y="78" width="35" height="20" fill="#ffd740" opacity="0.6" rx="2"/>
+    <rect x="20" y="126" width="35" height="20" fill="#00c853" opacity="0.6" rx="2"/>
+    <rect x="70" y="126" width="35" height="20" fill="#00c853" opacity="0.6" rx="2"/>
+    <rect x="120" y="126" width="35" height="20" fill="#00c853" opacity="0.6" rx="2"/>
+    <rect x="170" y="126" width="35" height="20" fill="#00c853" opacity="0.6" rx="2"/>
+
+    <!-- Wavelet: adaptive window -->
+    <text x="390" y="14" text-anchor="middle" fill="#8892b0">Wavelet: adaptive window</text>
+    <line x1="270" y1="150" x2="510" y2="150" stroke="#8892b0" stroke-width="1"/>
+    <line x1="270" y1="20" x2="270" y2="155" stroke="#8892b0" stroke-width="1"/>
+    <text x="265" y="40" fill="#ff5252" text-anchor="end" font-size="9">high f</text>
+    <text x="265" y="90" fill="#ffd740" text-anchor="end" font-size="9">mid f</text>
+    <text x="265" y="140" fill="#00c853" text-anchor="end" font-size="9">low f</text>
+    <!-- Narrow/tall boxes at high freq -->
+    <rect x="278" y="26" width="15" height="20" fill="#ff5252" opacity="0.7" rx="2"/>
+    <rect x="298" y="26" width="15" height="20" fill="#ff5252" opacity="0.7" rx="2"/>
+    <rect x="318" y="26" width="15" height="20" fill="#ff5252" opacity="0.7" rx="2"/>
+    <rect x="338" y="26" width="15" height="20" fill="#ff5252" opacity="0.7" rx="2"/>
+    <rect x="358" y="26" width="15" height="20" fill="#ff5252" opacity="0.7" rx="2"/>
+    <rect x="378" y="26" width="15" height="20" fill="#ff5252" opacity="0.7" rx="2"/>
+    <rect x="398" y="26" width="15" height="20" fill="#ff5252" opacity="0.7" rx="2"/>
+    <rect x="418" y="26" width="15" height="20" fill="#ff5252" opacity="0.7" rx="2"/>
+    <!-- Medium boxes at mid freq -->
+    <rect x="278" y="72" width="40" height="24" fill="#ffd740" opacity="0.7" rx="2"/>
+    <rect x="323" y="72" width="40" height="24" fill="#ffd740" opacity="0.7" rx="2"/>
+    <rect x="368" y="72" width="40" height="24" fill="#ffd740" opacity="0.7" rx="2"/>
+    <rect x="413" y="72" width="40" height="24" fill="#ffd740" opacity="0.7" rx="2"/>
+    <!-- Wide boxes at low freq -->
+    <rect x="278" y="120" width="100" height="25" fill="#00c853" opacity="0.7" rx="2"/>
+    <rect x="383" y="120" width="100" height="25" fill="#00c853" opacity="0.7" rx="2"/>
+  </svg>
+  <figcaption>STFT uses identical tiles (fixed time-frequency resolution). Wavelets use adaptive tiling: narrow and tall at high frequencies (good time resolution), wide and short at low frequencies (good frequency resolution).</figcaption>
+</div>
+
+<h3>CWT vs DWT</h3>
+<ul>
+  <li><strong>Continuous Wavelet Transform (CWT)</strong>: computes correlation with wavelets at all scales and positions. Produces a highly redundant, continuous time-scale map. Used for analysis and visualization.</li>
+  <li><strong>Discrete Wavelet Transform (DWT)</strong>: uses a dyadic (powers of 2) scale grid. Fast, non-redundant, and perfect for denoising and compression.</li>
+</ul>
+
+<h3>DWT: Filterbank Interpretation</h3>
+<p>The DWT can be implemented as a cascade of <strong>highpass and lowpass filters</strong> followed by downsampling by 2 — the "Mallat algorithm":</p>
+<ul>
+  <li>Highpass → detail coefficients (high-frequency content)</li>
+  <li>Lowpass → approximation coefficients (low-frequency content, passed to next level)</li>
+</ul>
+
+<h2>Mathematical Foundation</h2>
+<p><strong>Continuous Wavelet Transform:</strong></p>
+
+$$W_x(a, b) = \frac{1}{\sqrt{a}} \int_{-\infty}^{\infty} x(t)\, \psi^*\!\left(\frac{t-b}{a}\right) dt$$
+
+<p>Interpretation: $W_x(a, b)$ measures how much the signal $x(t)$ resembles the wavelet at scale $a$ centered at time $b$. Large $|W_x|$ = strong match.</p>
+
+<p><strong>Popular mother wavelets:</strong></p>
+<ul>
+  <li><strong>Morlet</strong>: Gaussian-modulated sinusoid — great for frequency analysis.</li>
+  <li><strong>Haar</strong>: step function — simplest, used in compression.</li>
+  <li><strong>Daubechies (dbN)</strong>: compact, smooth — most popular for DWT denoising.</li>
+  <li><strong>Symlets, Coiflets</strong>: modifications of Daubechies with better symmetry.</li>
+</ul>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="The key advantage of wavelets over STFT is multi-resolution: narrow windows at high frequencies (good time resolution) and wide windows at low frequencies (good frequency resolution). STFT uses the same window at all frequencies.">
+  <h3>Q1. The key advantage of wavelet analysis over STFT is:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Wavelets are always faster to compute</li>
+    <li class="quiz-option" data-correct="true">Adaptive time-frequency resolution: high time resolution at high frequencies, high frequency resolution at low frequencies</li>
+    <li class="quiz-option" data-correct="false">Wavelets eliminate spectral leakage completely</li>
+    <li class="quiz-option" data-correct="false">Wavelets work without needing a window function</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Large scale a → wavelet is stretched → matches low-frequency components. Small scale → compressed wavelet → matches high-frequency components.">
+  <h3>Q2. In the CWT, a large scale $a$ corresponds to:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">High-frequency components</li>
+    <li class="quiz-option" data-correct="true">Low-frequency components (stretched wavelet)</li>
+    <li class="quiz-option" data-correct="false">Better time resolution</li>
+    <li class="quiz-option" data-correct="false">A larger hop size</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="The DWT uses a cascade of high/lowpass filters (Mallat algorithm). Highpass output = detail coefficients (high-frequency). Lowpass output = approximation, passed to the next level. This is much faster than the CWT.">
+  <h3>Q3. In the Discrete Wavelet Transform (DWT), the detail coefficients capture:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">The overall shape (low-frequency approximation)</li>
+    <li class="quiz-option" data-correct="true">The high-frequency content at each decomposition level</li>
+    <li class="quiz-option" data-correct="false">The phase information only</li>
+    <li class="quiz-option" data-correct="false">The DC component</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<div class="callout warning">
+  <strong>⚠ Requires Wavelet Toolbox</strong>. Verify with: <code>license('test','Wavelet_Toolbox')</code>. Octave users can use the <code>wavelets</code> package.
+</div>
+<pre><code class="language-matlab">%% 4.2 CWT and DWT
+
+fs = 1000;
+T  = 2;
+t  = 0:1/fs:T-1/fs;
+
+%% Part A — CWT of a chirp
+x_chirp = chirp(t, 10, T, 400);
+
+figure('Name','CWT of Chirp');
+cwt(x_chirp, fs);
+title('CWT Scalogram — Chirp (10→400 Hz)');
+colormap('jet');
+
+%% Part B — CWT of non-stationary signal
+x_ns = [sin(2*pi*50*t(1:fs)), ...    % 50 Hz, 1st second
+        sin(2*pi*200*t(1:fs))];        % 200 Hz, 2nd second
+t_ns = (0:length(x_ns)-1)/fs;
+
+figure('Name','CWT — Frequency Change');
+subplot(2,1,1); plot(t_ns, x_ns); xlabel('Time (s)'); title('50 Hz → 200 Hz signal');
+subplot(2,1,2); cwt(x_ns, fs); title('CWT reveals when frequency changes');
+
+%% Part C — DWT for denoising
+rng(1);
+x_clean = sin(2*pi*30*t);
+x_noisy = x_clean + 0.8*randn(size(t));
+
+[C, L] = wavedec(x_noisy, 5, 'db4');   % 5-level decomposition with Daubechies-4
+
+% Soft thresholding (denoising)
+sigma = median(abs(C)) / 0.6745;        % Robust noise estimate
+thr   = sigma * sqrt(2*log(length(x_noisy)));
+C_thr = wthresh(C, 's', thr);          % Soft threshold
+x_denoised = waverec(C_thr, L, 'db4'); % Reconstruct
+
+figure('Name','DWT Denoising');
+subplot(3,1,1); plot(t, x_clean); title('Clean signal'); ylim([-2 2]);
+subplot(3,1,2); plot(t, x_noisy); title('Noisy signal'); ylim([-3 3]);
+subplot(3,1,3); plot(t, x_denoised); hold on; plot(t, x_clean,'r--');
+title(sprintf('Denoised (db4, 5 levels) — RMS error: %.3f', rms(x_denoised-x_clean)));
+legend('Denoised','True'); ylim([-2 2]);
+
+%% Part D — DWT coefficient visualisation
+figure('Name','DWT Decomposition');
+[C, L] = wavedec(x_noisy, 4, 'db4');
+for lvl = 1:4
+  d = detcoef(C, L, lvl);
+  subplot(4,1,5-lvl);
+  plot(d); title(sprintf('Detail coefficients — Level %d (%.0f–%.0f Hz)', lvl, fs/2^(lvl+1), fs/2^lvl));
+end
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>The CWT scalogram shows frequency (y-axis) vs time (x-axis). The chirp appears as a diagonal line sweeping from low to high frequency. The denoised signal in Part C should closely follow the clean original — DWT denoising is very effective for smooth signals in noisy backgrounds.</p>
+</details>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Wavelets overcome STFT's fixed resolution by using adaptive window sizes: narrow at high freq, wide at low freq.</li>
+    <li>The <strong>CWT</strong> produces a continuous scalogram — redundant, good for visualization.</li>
+    <li>The <strong>DWT</strong> uses a dyadic filterbank — fast, non-redundant, ideal for denoising &amp; compression.</li>
+    <li>The <strong>mother wavelet</strong> $\psi$ is scaled ($a$) and translated ($b$) to generate all basis functions.</li>
+    <li>In MATLAB: <code>cwt(x, fs)</code> for CWT, <code>wavedec(x, N, 'db4')</code> for DWT.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m4-time-frequency/4.1-stft'); return false;">← 4.1 STFT</a>
+  <a href="#" onclick="loadTopic('m5-filters/5.1-filter-design'); return false;">Next: Module 5 — Filter Design →</a>
+</div>

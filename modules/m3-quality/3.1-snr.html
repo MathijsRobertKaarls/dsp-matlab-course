@@ -1,0 +1,182 @@
+<h1>3.1 — SNR Improvement</h1>
+<p class="topic-meta">Module 3 · Signal Quality · ~20 min</p>
+
+<h2>Introduction</h2>
+<p>Every real-world measurement is contaminated by noise — thermal fluctuations, electromagnetic interference, sensor imperfections. The <strong>Signal-to-Noise Ratio (SNR)</strong> quantifies how much of what you're measuring is actual signal versus unwanted noise. A higher SNR means a cleaner, more reliable measurement.</p>
+<p>DSP offers several strategies to improve SNR: filtering, averaging, and more. Understanding SNR in decibels is essential for quantifying these improvements.</p>
+
+<h2>Core Concept</h2>
+<h3>What is SNR?</h3>
+<p>SNR is the ratio of signal power to noise power:</p>
+
+$$\text{SNR} = \frac{P_{signal}}{P_{noise}}$$
+
+<p>In practice we use the <strong>decibel (dB)</strong> scale because SNR values span many orders of magnitude:</p>
+
+$$\text{SNR}_{dB} = 10 \log_{10}\!\left(\frac{P_{signal}}{P_{noise}}\right) = 20 \log_{10}\!\left(\frac{A_{signal}}{A_{noise}}\right)$$
+
+<p>Common reference points:</p>
+<ul>
+  <li><strong>0 dB</strong> — signal and noise are equal power (barely usable)</li>
+  <li><strong>10 dB</strong> — signal is 10× stronger than noise (audible)</li>
+  <li><strong>40 dB</strong> — signal is 10,000× stronger (high quality)</li>
+  <li><strong>-∞ dB</strong> — pure noise, no signal</li>
+</ul>
+
+<h3>SNR Improvement Strategies</h3>
+<ul>
+  <li><strong>Filtering</strong> — reject noise outside the signal's frequency band (covered in Module 5)</li>
+  <li><strong>Averaging</strong> — average $M$ repeated measurements; SNR improves by $\sqrt{M}$</li>
+  <li><strong>Coherent detection</strong> — lock to a known reference phase (lock-in amplifier)</li>
+  <li><strong>Oversampling</strong> — sample faster than necessary, then decimate; gains $\approx 3$ dB per doubling</li>
+</ul>
+
+<h3>Averaging: SNR ∝ √M</h3>
+<p>If you repeat a measurement $M$ times and average the results, random noise partially cancels while the coherent signal adds up:</p>
+
+$$\text{SNR}_{avg} = \sqrt{M} \cdot \text{SNR}_{single}$$
+
+$$\text{SNR}_{dB,avg} = \text{SNR}_{dB,single} + 10\log_{10}(M) \;\text{dB}$$
+
+<div class="callout">
+  <strong>Example:</strong> Averaging 100 ECG sweeps improves SNR by $10\log_{10}(100) = 20$ dB — a 100× power improvement.
+</div>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 160" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="10">
+    <text x="130" y="14" text-anchor="middle" fill="#8892b0">Single measurement (noisy)</text>
+    <line x1="10" y1="80" x2="250" y2="80" stroke="#2e3352" stroke-width="1"/>
+    <!-- noisy sine -->
+    <path d="M10,80 C20,55 30,58 40,80 C50,102 60,98 70,80 C80,62 90,61 100,80 C110,99 120,97 130,80 C140,60 150,57 160,80 C170,103 180,101 190,80 C200,59 210,55 220,80 C230,105 240,103 250,80"
+      stroke="#00e5ff" stroke-width="1.5" fill="none" opacity="0.5"/>
+    <!-- extra noise wobble -->
+    <path d="M10,75 C15,65 25,90 35,72 C45,55 55,100 65,85 C75,70 85,60 95,83 C105,106 115,68 125,75 C135,82 145,58 155,90 C165,115 175,65 185,72 C195,80 205,50 215,90 C225,115 240,75 250,80"
+      stroke="#ff5252" stroke-width="1" fill="none" opacity="0.6"/>
+
+    <text x="390" y="14" text-anchor="middle" fill="#8892b0">Averaged (M=64 sweeps)</text>
+    <line x1="270" y1="80" x2="510" y2="80" stroke="#2e3352" stroke-width="1"/>
+    <!-- clean sine -->
+    <path d="M270,80 C285,55 300,55 315,80 C330,105 345,105 360,80 C375,55 390,55 405,80 C420,105 435,105 450,80 C465,55 480,55 495,80 C505,95 510,88 510,80"
+      stroke="#00e5ff" stroke-width="2.5" fill="none"/>
+    <!-- tiny residual noise -->
+    <path d="M270,80 C285,56 300,56 315,80 C330,104 345,104 360,80 C375,57 390,57 405,80 C420,103 435,104 450,80 C465,56 480,57 495,80"
+      stroke="#ff5252" stroke-width="0.5" fill="none" opacity="0.4"/>
+
+    <text x="130" y="150" text-anchor="middle" fill="#ff5252" font-size="9">High noise</text>
+    <text x="390" y="150" text-anchor="middle" fill="#00c853" font-size="9">SNR improved by 10·log₁₀(64) = 18 dB</text>
+  </svg>
+  <figcaption>Averaging 64 measurements reduces noise by a factor of 8 (18 dB), revealing the underlying signal.</figcaption>
+</div>
+
+<h2>Mathematical Foundation</h2>
+<p>Signal model: $x[n] = s[n] + w[n]$, where $s[n]$ is the deterministic signal and $w[n]$ is zero-mean noise with variance $\sigma^2$.</p>
+<p>After averaging $M$ trials:</p>
+
+$$\bar{x}[n] = \frac{1}{M}\sum_{m=1}^{M} x_m[n]$$
+
+<p>The signal component (coherent) adds constructively: mean stays $s[n]$. The noise variance reduces: $\text{Var}(\bar{w}) = \sigma^2/M$. So noise amplitude scales as $1/\sqrt{M}$, giving SNR ∝ $\sqrt{M}$.</p>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="SNR = 10·log10(P_s/P_n). To find power ratio from dB: P_s/P_n = 10^(30/10) = 1000. Signal is 1000× stronger in power.">
+  <h3>Q1. An SNR of 30 dB means the signal power is how many times larger than the noise power?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">30×</li>
+    <li class="quiz-option" data-correct="false">100×</li>
+    <li class="quiz-option" data-correct="true">1000×</li>
+    <li class="quiz-option" data-correct="false">10,000×</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Averaging M=16 trials improves SNR by √16 = 4× in amplitude, or 20·log10(4) ≈ 12 dB. So: 10 + 12 = 22 dB.">
+  <h3>Q2. Starting from SNR = 10 dB, what SNR do you achieve after averaging 16 trials?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">10 dB</li>
+    <li class="quiz-option" data-correct="false">160 dB</li>
+    <li class="quiz-option" data-correct="true">22 dB</li>
+    <li class="quiz-option" data-correct="false">40 dB</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Filtering removes noise outside the signal band but cannot improve SNR for in-band noise. Averaging works only if the signal repeats coherently. Oversampling then decimating also helps. But just recording longer (more samples of a stationary noise signal) doesn't help if the signal itself is not repetitive.">
+  <h3>Q3. Which technique does NOT improve SNR on its own for a single, non-repetitive signal?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Bandpass filtering around the signal frequency</li>
+    <li class="quiz-option" data-correct="true">Averaging — when you only have one measurement (non-repetitive signal)</li>
+    <li class="quiz-option" data-correct="false">Oversampling and decimating</li>
+    <li class="quiz-option" data-correct="false">Coherent detection with a reference</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 3.1 SNR Improvement by Averaging
+
+fs = 1000; T = 0.5;
+t  = 0:1/fs:T-1/fs;
+f0 = 50;  A = 1;
+
+% True signal
+s = A * sin(2*pi*f0*t);
+
+% Simulate M noisy measurements
+M = 64;
+sigma = 2;   % noise std dev → SNR_single ≈ 20·log10(A/sigma) ≈ -6 dB
+rng(42);     % reproducible
+
+measurements = s + sigma * randn(M, length(t));
+
+% Compute running average and SNR
+snr_db = zeros(1, M);
+avg = zeros(size(t));
+for m = 1:M
+  avg = avg + measurements(m,:);
+  x_avg = avg / m;
+  noise_est = x_avg - s;
+  snr_db(m) = 10*log10(sum(s.^2) / sum(noise_est.^2));
+end
+
+% Plot
+figure;
+subplot(3,1,1); plot(t, measurements(1,:)); title('Single noisy measurement'); ylabel('Amplitude'); ylim([-6 6]);
+subplot(3,1,2); plot(t, avg/M); hold on; plot(t, s, '--'); title(sprintf('Average of %d measurements', M));
+legend('Average','True signal'); ylim([-2 2]);
+subplot(3,1,3); plot(1:M, snr_db, 'b-o', 'MarkerSize', 3); hold on;
+plot(1:M, 10*log10(1:M) + snr_db(1), 'r--');
+xlabel('Number of averages M'); ylabel('SNR (dB)');
+title('SNR vs M — blue: measured, red: theoretical √M improvement');
+legend('Measured SNR','Theoretical');
+
+% MATLAB built-in SNR function (Signal Processing Toolbox)
+fprintf('SNR (1 measurement):  %.1f dB\n', snr(s, measurements(1,:)-s));
+fprintf('SNR (%d measurements): %.1f dB\n', M, snr(s, avg/M - s));
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>The SNR plot should follow the red dashed theoretical line closely. Each time you quadruple M, SNR improves by ~6 dB. At M=64, you should gain about 18 dB over a single measurement.</p>
+</details>
+
+<h3>Exercise Questions</h3>
+<ol>
+  <li>How many averages are needed to improve SNR by 20 dB from the single-measurement baseline?</li>
+  <li>Change <code>sigma</code> from 2 to 0.5. How does this affect the single-measurement SNR?</li>
+  <li>What is the theoretical SNR improvement from M=1 to M=64? Compute: <code>10*log10(64)</code>.</li>
+</ol>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>SNR measures signal quality: $\text{SNR}_{dB} = 10\log_{10}(P_s/P_n)$.</li>
+    <li>Averaging $M$ measurements improves SNR by $\sqrt{M}$ (or $10\log_{10}M$ dB).</li>
+    <li>Filtering, oversampling, and coherent detection are complementary SNR strategies.</li>
+    <li>Each extra 6 dB of SNR requires 4× more averages — expensive at high SNR!</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m2-frequency/2.4-dac-drawback'); return false;">← 2.4 DAC Drawback</a>
+  <a href="#" onclick="loadTopic('m3-quality/3.2-zero-padding'); return false;">Next: 3.2 Zero-Padding →</a>
+</div>

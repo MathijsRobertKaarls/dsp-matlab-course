@@ -1,0 +1,222 @@
+<h1>5.6 — Pole/Zero Plot</h1>
+<p class="topic-meta">Module 5 · Filter Design · ~20 min</p>
+
+<h2>Introduction</h2>
+<p>Poles and zeros are the "personality" of a filter, plotted in the complex Z-plane. Their locations tell you everything: the frequency response, stability, and qualitative behavior — often without computing a single number. This geometric interpretation of filter behavior is powerful and elegant.</p>
+
+<h2>Core Concept</h2>
+<h3>Poles and Zeros Defined</h3>
+<p>Given the transfer function $H(z) = \frac{B(z)}{A(z)}$:</p>
+<ul>
+  <li><strong>Zeros</strong> $z_k$: values of $z$ where $B(z) = 0$ → $H(z_k) = 0$. Plotted as <strong>circles (○)</strong>.</li>
+  <li><strong>Poles</strong> $p_k$: values of $z$ where $A(z) = 0$ → $H(p_k) = \infty$. Plotted as <strong>crosses (×)</strong>.</li>
+</ul>
+
+<h3>Geometric Frequency Response</h3>
+<p>The frequency response $H(e^{j\omega})$ can be computed geometrically. Evaluate $H(z)$ as you sweep around the unit circle at angle $\omega$:</p>
+<ul>
+  <li>A <strong>zero near the unit circle</strong> at angle $\omega_0$ → magnitude is <em>small</em> near $\omega_0$ (notch/dip).</li>
+  <li>A <strong>pole near the unit circle</strong> at angle $\omega_0$ → magnitude is <em>large</em> near $\omega_0$ (peak/resonance).</li>
+  <li>A <strong>zero ON the unit circle</strong> → exact null (infinite attenuation) at that frequency.</li>
+</ul>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="10">
+    <!-- Z-plane -->
+    <text x="120" y="12" text-anchor="middle" fill="#8892b0">Z-Plane (Pole-Zero Plot)</text>
+    <line x1="20" y1="100" x2="220" y2="100" stroke="#8892b0" stroke-width="1"/>
+    <line x1="120" y1="10" x2="120" y2="190" stroke="#8892b0" stroke-width="1"/>
+    <!-- Unit circle -->
+    <circle cx="120" cy="100" r="70" fill="none" stroke="#00e5ff" stroke-width="1.5"/>
+    <!-- Labels -->
+    <text x="194" y="103" fill="#8892b0">1</text>
+    <text x="42" y="103" fill="#8892b0">-1</text>
+    <text x="123" y="28" fill="#8892b0">j</text>
+    <text x="123" y="180" fill="#8892b0">-j</text>
+
+    <!-- Conjugate pole pair (bandpass-like, near unit circle) -->
+    <text x="153" y="72" fill="#ff5252" font-size="14">×</text>
+    <text x="153" y="138" fill="#ff5252" font-size="14">×</text>
+    <text x="165" y="72" fill="#ff5252" font-size="9">p, p*</text>
+
+    <!-- Zero at -1 (highpass) -->
+    <circle cx="52" cy="100" r="6" fill="none" stroke="#ffd740" stroke-width="2"/>
+    <text x="38" y="92" fill="#ffd740" font-size="9">z=-1</text>
+    <text x="38" y="82" fill="#ffd740" font-size="9">(DC null)</text>
+
+    <!-- Frequency response sketch -->
+    <text x="390" y="12" text-anchor="middle" fill="#8892b0">Frequency Response</text>
+    <line x1="270" y1="10" x2="270" y2="190" stroke="#8892b0" stroke-width="1"/>
+    <line x1="270" y1="190" x2="510" y2="190" stroke="#8892b0" stroke-width="1"/>
+
+    <!-- Peak from pole (bandpass) -->
+    <path d="M270,185 C290,184 310,175 340,140 C355,120 365,95 375,80 C385,65 395,82 405,105 C415,130 430,165 460,182 C480,186 500,187 510,187"
+      stroke="#ff5252" stroke-width="2.5" fill="none"/>
+
+    <!-- Zero at DC causes null at left edge -->
+    <circle cx="270" cy="185" r="4" fill="#ffd740"/>
+    <text x="255" y="200" fill="#ffd740" font-size="9">0Hz</text>
+
+    <!-- Peak label -->
+    <text x="375" y="70" fill="#ff5252" font-size="9">peak from pole</text>
+
+    <!-- Arrows connecting pole to response -->
+    <line x1="162" y1="75" x2="370" y2="80" stroke="#ff5252" stroke-width="0.8" stroke-dasharray="4,3"/>
+    <line x1="52" y1="100" x2="270" y2="185" stroke="#ffd740" stroke-width="0.8" stroke-dasharray="4,3"/>
+  </svg>
+  <figcaption>Left: conjugate poles (×) near unit circle create a resonance peak; zero at z=−1 creates a null at DC. Right: the resulting frequency response — bandpass with DC rejection.</figcaption>
+</div>
+
+<h3>Stability from the Pole-Zero Plot</h3>
+<ul>
+  <li>All poles <strong>inside</strong> the unit circle → BIBO stable.</li>
+  <li>Any pole <strong>on</strong> the unit circle → marginally stable (oscillates, doesn't grow or decay).</li>
+  <li>Any pole <strong>outside</strong> the unit circle → unstable (diverges).</li>
+</ul>
+
+<h3>FIR filters: all poles at origin</h3>
+<p>FIR filters have all their poles at $z = 0$ (the origin) — always inside the unit circle, always stable. Their response shape is controlled entirely by the zero locations.</p>
+
+<h2>Mathematical Foundation</h2>
+<p>The magnitude of the frequency response equals the product of distances from evaluation point $z = e^{j\omega}$ to all zeros, divided by the product of distances to all poles:</p>
+
+$$|H(e^{j\omega})| = |g| \cdot \frac{\prod_k |e^{j\omega} - z_k|}{\prod_k |e^{j\omega} - p_k|}$$
+
+<p>This geometric interpretation means:</p>
+<ul>
+  <li>When sweeping frequency ($\omega$ from 0 to $\pi$), the ratio of distances gives the magnitude.</li>
+  <li>A zero at $z = e^{j\omega_0}$ (on unit circle) → zero distance → $|H| = 0$ → perfect null at $f = \omega_0 f_s/(2\pi)$.</li>
+</ul>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="A zero ON the unit circle (|z|=1) at angle ω₀ means that when you evaluate H(z) at z=e^jω₀, the numerator is exactly zero → H=0 → infinite attenuation. This is used in notch filters.">
+  <h3>Q1. Placing a zero exactly ON the unit circle at angle $\omega_0$ produces:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">A resonance peak at that frequency</li>
+    <li class="quiz-option" data-correct="true">A perfect null (infinite attenuation) at the corresponding frequency</li>
+    <li class="quiz-option" data-correct="false">A −3dB cutoff at that frequency</li>
+    <li class="quiz-option" data-correct="false">Instability</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="A pole close to the unit circle but still inside creates a near-resonance — the frequency response has a very sharp, tall peak at the angle of the pole. The closer to the unit circle, the sharper and taller the peak (higher Q factor).">
+  <h3>Q2. Moving a pole closer to (but still inside) the unit circle causes the frequency response to:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Flatten out (more uniform gain)</li>
+    <li class="quiz-option" data-correct="true">Develop a sharper, taller peak at the pole's angular frequency</li>
+    <li class="quiz-option" data-correct="false">Become unstable immediately</li>
+    <li class="quiz-option" data-correct="false">Introduce a null at DC</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="FIR filters have no feedback, so all poles are at z=0 (the origin), which is always inside the unit circle. Therefore FIR filters are unconditionally stable — no matter what the coefficients are.">
+  <h3>Q3. Why are FIR filters unconditionally stable?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Their zeros are always on the unit circle</li>
+    <li class="quiz-option" data-correct="false">They have no zeros</li>
+    <li class="quiz-option" data-correct="true">All their poles are at $z=0$ (origin), always inside the unit circle</li>
+    <li class="quiz-option" data-correct="false">They use only real-valued coefficients</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 5.6 Pole-Zero Plots and Geometric Frequency Response
+
+fs = 1000;
+
+%% Part A — Design various filters and examine pole-zero plots
+figure('Name','Pole-Zero Plots');
+
+filters = {
+  butter(2, 0.3, 'low'),     'Butterworth LP'
+  butter(4, 0.5, 'high'),    'Butterworth HP'
+  butter(3, [0.2 0.5], 'bandpass'), 'Butterworth BP'
+  butter(4, 0.3, 'low')      '4th order LP'
+};
+
+% Actually get b,a for each
+[b1,a1] = butter(2, 0.3, 'low');
+[b2,a2] = butter(4, 0.5, 'high');
+[b3,a3] = butter(3, [0.2 0.5], 'bandpass');
+[b4,a4] = ellip(4, 1, 40, 0.3, 'low');
+
+ba = {{b1,a1,'Butterworth LP 2nd'},{b2,a2,'Butterworth HP 4th'},...
+      {b3,a3,'Butterworth BP 3rd'},{b4,a4,'Elliptic LP 4th'}};
+
+for i = 1:4
+  subplot(2,4,i);
+  zplane(ba{i}{1}, ba{i}{2});
+  title(ba{i}{3}, 'FontSize', 8);
+
+  subplot(2,4,i+4);
+  freqz(ba{i}{1}, ba{i}{2}, 512, fs);
+  title('');
+  xlabel('Hz'); ylabel('dB');
+end
+
+%% Part B — Manual notch filter by pole-zero placement
+% Notch at 60 Hz (power line noise) in 1000 Hz system
+f_notch = 60;
+omega_n = 2*pi*f_notch/fs;
+
+% Place zeros ON unit circle at ±omega_n
+z_zeros = exp(1j*omega_n) * [1; -1];   % wait — use conjugate pair
+z_zeros = [exp(1j*omega_n); exp(-1j*omega_n)];
+
+% Place poles slightly inside at same angle (to make narrow notch)
+r_pole = 0.95;
+z_poles = r_pole * [exp(1j*omega_n); exp(-1j*omega_n)];
+
+[b_notch, a_notch] = zp2tf(z_zeros, z_poles, 1);
+b_notch = real(b_notch);
+a_notch = real(a_notch);
+
+figure('Name','Manual Notch at 60Hz');
+subplot(1,2,1); zplane(b_notch, a_notch); title('Pole-Zero: Notch at 60Hz');
+subplot(1,2,2);
+[H_n, f_n] = freqz(b_notch, a_notch, 4096, fs);
+plot(f_n, 20*log10(abs(H_n)));
+xlabel('Hz'); ylabel('dB'); title('Frequency response');
+xline(f_notch, 'r--', '60Hz'); ylim([-60 5]); grid on;
+
+%% Part C — Effect of pole/zero distance from unit circle
+figure('Name','Pole Proximity Effect');
+rs = [0.7, 0.85, 0.95, 0.99];
+f_pole = 100;  omega_p = 2*pi*f_pole/fs;
+for i = 1:4
+  r = rs(i);
+  p = r * [exp(1j*omega_p); exp(-1j*omega_p)];
+  z = [0; 0];
+  [bp, ap] = zp2tf(z, p, 1);
+  [H, f] = freqz(real(bp), real(ap), 4096, fs);
+  subplot(2,2,i);
+  plot(f, 20*log10(abs(H)));
+  title(sprintf('Pole r=%.2f at 100Hz', r));
+  xlabel('Hz'); ylabel('dB'); xlim([0 500]); ylim([-10 40]); grid on;
+end
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>In Part C, watch how the peak at 100 Hz grows dramatically as the pole radius approaches 1.0. At r=0.7 you see a mild bump; at r=0.99 you see an extremely sharp, tall resonance peak (high Q). In Part B, the zeros ON the unit circle create exactly 0 gain (-∞ dB) at 60 Hz. The nearby poles ensure rapid recovery on either side.</p>
+</details>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Poles (×) near the unit circle create peaks; zeros (○) near the unit circle create dips.</li>
+    <li>Zero ON the unit circle → perfect null at that frequency.</li>
+    <li>Stability: all poles must be strictly inside the unit circle.</li>
+    <li>FIR = all poles at origin → always stable.</li>
+    <li>In MATLAB: <code>zplane(b,a)</code>; <code>zp2tf(zeros, poles, gain)</code> for design from pole-zero locations.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m5-filters/5.5-bode-diagram'); return false;">← 5.5 Bode Diagram</a>
+  <a href="#" onclick="loadTopic('m6-resampling/6.1-overview'); return false;">Next: Module 6 — Resampling →</a>
+</div>

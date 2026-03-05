@@ -1,0 +1,219 @@
+<h1>5.5 — Bode Diagram</h1>
+<p class="topic-meta">Module 5 · Filter Design · ~20 min</p>
+
+<h2>Introduction</h2>
+<p>The Bode diagram is the standard way to visualize a filter's frequency response — plotting magnitude and phase separately over a logarithmic frequency axis. Logarithmic scaling is crucial: it lets you see decades of frequency range at once and reveals straight-line asymptotic behavior that makes filter design intuitive.</p>
+
+<h2>Core Concept</h2>
+<h3>Two Plots in One</h3>
+<p>A Bode diagram consists of two plots sharing the same (logarithmic) frequency axis:</p>
+<ol>
+  <li><strong>Magnitude plot</strong>: $20\log_{10}|H(e^{j\omega})|$ in dB vs. frequency (log scale)</li>
+  <li><strong>Phase plot</strong>: $\angle H(e^{j\omega})$ in degrees vs. frequency (log scale)</li>
+</ol>
+
+<h3>Key Features to Read from a Bode Plot</h3>
+<ul>
+  <li><strong>Passband gain</strong>: the flat region (ideally 0 dB for unit gain)</li>
+  <li><strong>Cutoff frequency $f_c$</strong>: conventionally where the gain drops to $-3$ dB (half power)</li>
+  <li><strong>Rolloff rate</strong>: how steeply the magnitude drops in the stopband, in dB/decade or dB/octave. Each first-order pole contributes −20 dB/decade. A 4th-order Butterworth rolls off at −80 dB/decade.</li>
+  <li><strong>Phase at cutoff</strong>: for a Butterworth, exactly −45° × order at $f_c$</li>
+</ul>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg" font-family="monospace" font-size="9">
+    <!-- Magnitude plot -->
+    <text x="10" y="12" fill="#8892b0">Magnitude (dB)</text>
+    <line x1="40" y1="15" x2="40" y2="100" stroke="#8892b0" stroke-width="1"/>
+    <line x1="40" y1="100" x2="500" y2="100" stroke="#8892b0" stroke-width="1"/>
+    <!-- 0 dB line -->
+    <line x1="40" y1="22" x2="260" y2="22" stroke="#8892b0" stroke-dasharray="3,3" stroke-width="1"/>
+    <text x="35" y="25" text-anchor="end" fill="#8892b0">0</text>
+    <!-- -3 dB line -->
+    <line x1="40" y1="32" x2="260" y2="32" stroke="#ffd740" stroke-dasharray="3,3" stroke-width="1"/>
+    <text x="35" y="35" text-anchor="end" fill="#ffd740">-3</text>
+
+    <!-- Bode magnitude curve (Butterworth-like) -->
+    <path d="M40,22 L200,22 C220,22 240,25 260,32 C270,36 280,45 300,58 C320,72 340,82 360,88 C380,93 410,97 500,99"
+      stroke="#00e5ff" stroke-width="2.5" fill="none"/>
+
+    <!-- -3dB marker -->
+    <line x1="260" y1="15" x2="260" y2="105" stroke="#ffd740" stroke-dasharray="3,2" stroke-width="1.2"/>
+    <text x="260" y="110" text-anchor="middle" fill="#ffd740">fc</text>
+
+    <!-- Rolloff annotation -->
+    <text x="380" y="65" fill="#8892b0">−20dB/decade</text>
+    <text x="380" y="75" fill="#8892b0">(1st order)</text>
+
+    <!-- Phase plot -->
+    <text x="10" y="130" fill="#8892b0">Phase (°)</text>
+    <line x1="40" y1="130" x2="40" y2="195" stroke="#8892b0" stroke-width="1"/>
+    <line x1="40" y1="195" x2="500" y2="195" stroke="#8892b0" stroke-width="1"/>
+    <!-- 0° -->
+    <line x1="40" y1="133" x2="500" y2="133" stroke="#8892b0" stroke-dasharray="3,3" stroke-width="0.8"/>
+    <text x="35" y="136" text-anchor="end" fill="#8892b0">0°</text>
+    <!-- -45° -->
+    <line x1="40" y1="163" x2="500" y2="163" stroke="#ffd740" stroke-dasharray="3,2" stroke-width="0.8"/>
+    <text x="35" y="166" text-anchor="end" fill="#ffd740">-45°</text>
+    <!-- -90° -->
+    <text x="35" y="192" text-anchor="end" fill="#8892b0">-90°</text>
+
+    <!-- Phase curve (Butterworth 1st order) -->
+    <path d="M40,134 C100,135 150,138 200,146 C220,150 240,158 260,163 C280,168 310,175 350,183 C390,190 450,193 500,194"
+      stroke="#7c3aed" stroke-width="2.5" fill="none"/>
+
+    <!-- -45° at fc marker -->
+    <line x1="260" y1="125" x2="260" y2="195" stroke="#ffd740" stroke-dasharray="3,2" stroke-width="1.2"/>
+
+    <!-- Freq axis labels (log) -->
+    <text x="100" y="110" fill="#8892b0">10</text>
+    <text x="200" y="110" fill="#8892b0">100</text>
+    <text x="300" y="110" fill="#8892b0">1k</text>
+    <text x="400" y="110" fill="#8892b0">10k</text>
+    <text x="270" y="120" fill="#8892b0">Frequency (Hz) — log scale</text>
+  </svg>
+  <figcaption>Bode diagram: magnitude (top, dB) and phase (bottom, degrees) on a log frequency axis. At the cutoff frequency fc: magnitude = −3 dB, phase = −45° (1st order).</figcaption>
+</div>
+
+<h3>Rolloff Rates</h3>
+<ul>
+  <li>1st-order system: −20 dB/decade = −6 dB/octave</li>
+  <li>2nd-order system: −40 dB/decade = −12 dB/octave</li>
+  <li>$N$th-order: $-20N$ dB/decade</li>
+</ul>
+
+<h2>Mathematical Foundation</h2>
+<p>For a first-order continuous-time lowpass: $H(s) = \frac{1}{1 + s/\omega_c}$</p>
+
+<p>Magnitude: $|H(j\omega)| = \frac{1}{\sqrt{1 + (\omega/\omega_c)^2}}$</p>
+
+<p>In dB: $20\log_{10}|H| \approx \begin{cases} 0 \text{ dB} & \omega \ll \omega_c \\ -20\log_{10}(\omega/\omega_c) & \omega \gg \omega_c \end{cases}$</p>
+
+<p>For discrete-time filters, replace $s \to (z-1)/T$ (bilinear transform) or evaluate $H(e^{j\omega})$ directly.</p>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="The -3dB point is the conventional cutoff frequency. At this frequency the magnitude is 1/√2 ≈ 0.707 of its passband value, which is half power (since power ∝ amplitude²).">
+  <h3>Q1. At the −3 dB cutoff frequency, the filter's amplitude gain is approximately:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">0 (complete rejection)</li>
+    <li class="quiz-option" data-correct="false">0.5 (half the passband amplitude)</li>
+    <li class="quiz-option" data-correct="true">0.707 (= 1/√2, half the passband <em>power</em>)</li>
+    <li class="quiz-option" data-correct="false">1.0 (unchanged)</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="An 8th-order filter has 8 poles, each contributing -20 dB/decade. Total rolloff = 8 × 20 = -160 dB/decade. This is an extremely steep filter.">
+  <h3>Q2. An 8th-order Butterworth lowpass filter has a stopband rolloff of:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">−20 dB/decade</li>
+    <li class="quiz-option" data-correct="false">−80 dB/decade</li>
+    <li class="quiz-option" data-correct="true">−160 dB/decade</li>
+    <li class="quiz-option" data-correct="false">−8 dB/decade</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Frequency axis is logarithmic in Bode plots. One decade = 10× frequency. This lets you display a wide range (e.g. 1 Hz to 10 kHz) without the high-frequency detail being squashed. One octave = 2× frequency (common in audio).">
+  <h3>Q3. Why is the frequency axis of a Bode plot logarithmic?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">To make the magnitude response appear linear</li>
+    <li class="quiz-option" data-correct="true">To display a wide frequency range and reveal the straight-line asymptotic rolloff behavior</li>
+    <li class="quiz-option" data-correct="false">Because decibels require a log scale</li>
+    <li class="quiz-option" data-correct="false">To match the human perception of pitch</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 5.5 Bode Diagrams of Digital Filters
+
+fs = 10000;   % Higher fs for wide frequency range
+
+%% Part A — Compare Butterworth orders
+figure('Name','Butterworth Order Effect');
+orders = [1, 2, 4, 8];
+colors = {'b','r','g','m'};
+Fc = 1000;  Fn = Fc/(fs/2);
+
+subplot(2,1,1); hold on;
+subplot(2,1,2); hold on;
+
+for i = 1:4
+  [b, a] = butter(orders(i), Fn, 'low');
+  [H, f] = freqz(b, a, 4096, fs);
+  mag_db = 20*log10(abs(H));
+  phase_deg = unwrap(angle(H))*180/pi;
+
+  subplot(2,1,1);
+  semilogx(f, mag_db, colors{i}, 'DisplayName', sprintf('Order %d (%.0fdB/dec)', orders(i), 20*orders(i)));
+
+  subplot(2,1,2);
+  semilogx(f, phase_deg, colors{i}, 'DisplayName', sprintf('Order %d', orders(i)));
+end
+
+subplot(2,1,1);
+xline(Fc,'k--','fc'); yline(-3,'k:','-3dB');
+xlabel('Frequency (Hz)'); ylabel('Magnitude (dB)');
+title('Butterworth Lowpass — Effect of Filter Order'); legend; ylim([-100 5]); grid on;
+
+subplot(2,1,2);
+xline(Fc,'k--','fc');
+xlabel('Frequency (Hz)'); ylabel('Phase (degrees)');
+title('Phase Response'); legend; grid on;
+
+%% Part B — Compare filter types (same order, same cutoff)
+figure('Name','Filter Type Comparison');
+[b_butt,  a_butt]  = butter(4,  Fn, 'low');
+[b_cheb1, a_cheb1] = cheby1(4, 1, Fn, 'low');   % 1 dB passband ripple
+[b_cheb2, a_cheb2] = cheby2(4, 40, Fn, 'low');   % 40 dB stopband attenuation
+[b_ellip, a_ellip] = ellip(4, 1, 40, Fn, 'low'); % 1dB pass, 40dB stop ripple
+
+filters = {b_butt,a_butt; b_cheb1,a_cheb1; b_cheb2,a_cheb2; b_ellip,a_ellip};
+names   = {'Butterworth','Chebyshev I (1dB)','Chebyshev II (40dB)','Elliptic'};
+
+for i = 1:4
+  [H, f] = freqz(filters{i,1}, filters{i,2}, 4096, fs);
+  semilogx(f, 20*log10(abs(H)), 'DisplayName', names{i}); hold on;
+end
+xline(Fc,'k--','fc'); yline(-3,'k:'); yline(-40,'k:','-40dB');
+xlabel('Hz'); ylabel('dB'); title('4th-Order Lowpass: Four Classic Types');
+legend; ylim([-80 5]); grid on;
+
+%% Part C — Read the Bode plot numerically
+[b4, a4] = butter(4, Fn, 'low');
+[H4, f4] = freqz(b4, a4, 4096, fs);
+mag4 = 20*log10(abs(H4));
+
+% Find -3dB frequency
+[~, idx] = min(abs(mag4 - (-3)));
+fprintf('\n4th-order Butterworth -3dB frequency: %.1f Hz\n', f4(idx));
+
+% Find -20dB frequency
+[~, idx20] = min(abs(mag4 - (-20)));
+fprintf('-20dB frequency: %.1f Hz\n', f4(idx20));
+fprintf('Rolloff per decade from fc to -20dB: %.0f dB/decade\n', ...
+  (mag4(idx20)-mag4(idx)) / log10(f4(idx20)/f4(idx)));
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>Part B shows the classic filter type trade-offs. Butterworth: maximally flat passband, no ripple. Chebyshev I: ripple in passband, steeper rolloff. Chebyshev II: ripple in stopband, flat passband. Elliptic: ripple in both, steepest possible rolloff for given order — most efficient. The measured rolloff in Part C should be close to the theoretical 80 dB/decade for a 4th-order filter.</p>
+</details>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Bode diagram: magnitude (dB) and phase (degrees) vs. frequency on a log scale.</li>
+    <li>Cutoff frequency $f_c$: where magnitude = −3 dB (half-power point).</li>
+    <li>Rolloff rate: $-20N$ dB/decade for an $N$th-order filter.</li>
+    <li>Filter types: Butterworth (flat), Chebyshev (steeper), Elliptic (steepest) — different ripple trade-offs.</li>
+    <li>In MATLAB: <code>freqz(b,a,N,fs)</code> then plot with <code>semilogx</code>; or use <code>bode()</code> for s-domain.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m5-filters/5.4-block-diagram'); return false;">← 5.4 Block Diagram</a>
+  <a href="#" onclick="loadTopic('m5-filters/5.6-pole-zero-plot'); return false;">Next: 5.6 Pole/Zero Plot →</a>
+</div>

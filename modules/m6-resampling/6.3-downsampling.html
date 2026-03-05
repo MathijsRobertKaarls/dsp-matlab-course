@@ -1,0 +1,183 @@
+<h1>6.3 — Downsampling (Decimation)</h1>
+<p class="topic-meta">Module 6 · Resampling · ~15 min</p>
+
+<h2>Introduction</h2>
+<p>Downsampling reduces the sampling rate — you keep only every $M$th sample. This is useful for reducing data size, matching system input rates, or implementing efficient multirate filterbanks. The danger: if you just throw away samples without care, you'll alias any signal content above the new Nyquist limit. The solution is always to <strong>lowpass filter before downsampling</strong>.</p>
+
+<h2>Core Concept</h2>
+<h3>The Decimation Process</h3>
+<p>Downsampling (decimation) by integer factor $M$:</p>
+<ol>
+  <li><strong>Anti-aliasing lowpass filter</strong>: cutoff at $f_s / (2M)$ — remove everything that would alias after downsampling.</li>
+  <li><strong>Downsample</strong>: keep every $M$th sample, discard the rest.</li>
+</ol>
+
+$$y[n] = x_{filtered}[nM]$$
+
+<div class="callout warning">
+  <strong>Order matters!</strong> Always filter BEFORE downsampling. The opposite order causes aliasing that cannot be undone.
+</div>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 130" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="9">
+    <!-- Input -->
+    <text x="15" y="30" fill="#00e5ff">x[n]</text>
+    <text x="15" y="42" fill="#8892b0">fs</text>
+    <line x1="55" y1="35" x2="90" y2="35" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ad)"/>
+
+    <!-- Anti-alias LPF -->
+    <rect x="90" y="22" width="90" height="26" rx="4" fill="none" stroke="#ffd740" stroke-width="1.5"/>
+    <text x="135" y="38" text-anchor="middle" fill="#ffd740">LPF (fs/2M)</text>
+    <line x1="180" y1="35" x2="215" y2="35" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ad)"/>
+
+    <!-- Downsample by M -->
+    <rect x="215" y="22" width="70" height="26" rx="4" fill="none" stroke="#ff5252" stroke-width="1.5"/>
+    <text x="250" y="38" text-anchor="middle" fill="#ff5252">↓ M</text>
+    <line x1="285" y1="35" x2="320" y2="35" stroke="#8892b0" stroke-width="1.5" marker-end="url(#ad)"/>
+
+    <!-- Output -->
+    <text x="323" y="30" fill="#00e5ff">y[n]</text>
+    <text x="323" y="42" fill="#8892b0">fs/M</text>
+
+    <!-- Wrong order (red X) -->
+    <text x="260" y="90" text-anchor="middle" fill="#ff5252" font-weight="bold">Wrong order causes aliasing:</text>
+    <text x="10" y="115" fill="#8892b0">x[n] →</text>
+    <rect x="55" y="103" width="55" height="20" rx="3" fill="none" stroke="#ff5252" stroke-width="1.2"/>
+    <text x="83" y="116" text-anchor="middle" fill="#ff5252">↓ M</text>
+    <text x="118" y="115" fill="#ff5252">→</text>
+    <rect x="130" y="103" width="70" height="20" rx="3" fill="none" stroke="#ff5252" stroke-width="1.2"/>
+    <text x="165" y="116" text-anchor="middle" fill="#ff5252">LPF</text>
+    <text x="210" y="115" fill="#ff5252">→ ALIASED! ✗</text>
+
+    <defs>
+      <marker id="ad" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+        <path d="M0,0 L5,2.5 L0,5 Z" fill="#8892b0"/>
+      </marker>
+    </defs>
+  </svg>
+  <figcaption>Correct decimation: anti-alias filter FIRST, then downsample. Reversed order aliases high-frequency content into the baseband — irreversible.</figcaption>
+</div>
+
+<h3>Spectral Effect of Downsampling</h3>
+<p>After lowpass filtering and downsampling by $M$, the new sampling rate is $f_s/M$, so the new Nyquist is $f_s/(2M)$. Any content that was above $f_s/(2M)$ before filtering has been removed. The spectrum of $y[n]$ is the filtered spectrum of $x[n]$, scaled in frequency by $M$.</p>
+
+<h2>Mathematical Foundation</h2>
+<p>The DTFT of the downsampled signal:</p>
+
+$$Y(e^{j\hat\omega}) = \frac{1}{M} \sum_{k=0}^{M-1} X_{LP}\!\left(e^{j(\hat\omega - 2\pi k)/M}\right)$$
+
+<p>This shows $M$ aliased terms — exactly like the STFT aliasing formula. The anti-aliasing LPF ensures $X_{LP}(e^{j\hat\omega}) = 0$ for $|\hat\omega| > \pi/M$, so all but the $k=0$ term vanish.</p>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="Decimation by M reduces the sampling rate to fs/M. The new Nyquist is fs/(2M). Any signal content above fs/(2M) will alias into the new baseband, which is why the anti-alias filter must cut off at fs/(2M).">
+  <h3>Q1. You downsample by $M=4$ from $f_s = 8000$ Hz. What is the new Nyquist frequency?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">8000 Hz</li>
+    <li class="quiz-option" data-correct="false">2000 Hz</li>
+    <li class="quiz-option" data-correct="true">1000 Hz</li>
+    <li class="quiz-option" data-correct="false">500 Hz</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="The anti-aliasing filter cutoff must be at or below the NEW Nyquist = fs/(2M). Everything above that frequency would alias after downsampling.">
+  <h3>Q2. When decimating by $M=5$ from $f_s = 10000$ Hz, the anti-aliasing filter cutoff should be at most:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">5000 Hz (original Nyquist)</li>
+    <li class="quiz-option" data-correct="true">1000 Hz (new Nyquist = $f_s/(2M) = 10000/10$)</li>
+    <li class="quiz-option" data-correct="false">2000 Hz</li>
+    <li class="quiz-option" data-correct="false">10000 Hz</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Downsampling by M keeps every M-th sample and discards M-1 samples out of every M. If M=3, you keep samples 0, 3, 6, 9... The signal length becomes approximately N/M.">
+  <h3>Q3. Downsampling a 1000-sample signal by $M=4$ produces a signal with approximately how many samples?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">4000</li>
+    <li class="quiz-option" data-correct="false">1000</li>
+    <li class="quiz-option" data-correct="true">250</li>
+    <li class="quiz-option" data-correct="false">100</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 6.3 Downsampling / Decimation
+
+fs = 8000;
+M  = 4;        % Downsample factor → new rate = 2000 Hz
+T  = 0.5;
+t  = (0:1/fs:T-1/fs);
+
+% Signal with content at 200 Hz and 1800 Hz
+f1 = 200;   f2 = 1800;   % f2 is above new Nyquist (1000 Hz)!
+x = sin(2*pi*f1*t) + 0.8*sin(2*pi*f2*t);
+
+%% Wrong: downsample without filtering (aliasing!)
+x_wrong = downsample(x, M);
+fs_new  = fs / M;
+
+%% Correct: anti-alias filter first
+Fn_aa = (fs_new/2) / (fs/2);   % normalized cutoff = 1/M
+b_aa  = fir1(64, Fn_aa);
+x_filtered = filter(b_aa, 1, x);
+x_correct  = downsample(x_filtered, M);
+
+%% Alternatively: use decimate() which does both steps
+x_decimate = decimate(x, M);
+
+%% Spectrum comparison
+t_new  = (0:length(x_wrong)-1)/fs_new;
+figure('Name','Decimation Comparison');
+
+subplot(3,2,1); plot(t(1:400), x(1:400));
+title(sprintf('Original: fs=%d Hz', fs)); xlabel('Time (s)');
+
+subplot(3,2,2);
+N = length(x);
+plot((0:N/2-1)*fs/N, abs(fft(x))*2/N);
+title('Original spectrum'); xlabel('Hz'); xlim([0 fs/2]);
+xline(fs_new/2,'r--','new Nyquist');
+
+subplot(3,2,3); plot(t_new, x_wrong);
+title('Decimated WITHOUT anti-alias (aliased!)'); xlabel('Time (s)');
+
+subplot(3,2,4);
+Nw = length(x_wrong);
+plot((0:Nw/2-1)*fs_new/Nw, abs(fft(x_wrong))*2/Nw);
+title(sprintf('Aliased spectrum — 1800Hz appears at %dHz', fs_new-f2));
+xlabel('Hz'); xlim([0 fs_new/2]);
+
+subplot(3,2,5); plot(t_new, x_correct);
+title('Decimated WITH anti-alias filter'); xlabel('Time (s)');
+
+subplot(3,2,6);
+Nc = length(x_correct);
+plot((0:Nc/2-1)*fs_new/Nc, abs(fft(x_correct))*2/Nc);
+title('Clean spectrum — only 200Hz remains'); xlabel('Hz'); xlim([0 fs_new/2]);
+
+fprintf('\nWith anti-alias filter, 1800Hz component is removed.\n');
+fprintf('Without it, 1800Hz aliases to %.0f Hz.\n', abs(f2 - fs_new));
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>The key insight: 1800 Hz is above the new Nyquist (1000 Hz), so it aliases to |1800-2000| = 200 Hz. Without the anti-alias filter, both the true 200 Hz and the aliased 1800 Hz appear at 200 Hz in the decimated signal — you can't tell them apart! With anti-alias filtering, the 1800 Hz is removed before decimation, leaving only the clean 200 Hz component.</p>
+</details>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Downsampling by $M$: keep every $M$th sample; new rate = $f_s/M$; new Nyquist = $f_s/(2M)$.</li>
+    <li>Always apply anti-aliasing lowpass filter (cutoff ≤ $f_s/(2M)$) BEFORE downsampling.</li>
+    <li>In MATLAB: <code>downsample(x, M)</code> (no filter!) or <code>decimate(x, M)</code> (filter + downsample).</li>
+    <li>Aliasing from decimation is permanent — filtering afterwards cannot undo it.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m6-resampling/6.2-upsampling'); return false;">← 6.2 Upsampling</a>
+  <a href="#" onclick="loadTopic('m6-resampling/6.4-zero-stuffing'); return false;">Next: 6.4 Zero Stuffing →</a>
+</div>

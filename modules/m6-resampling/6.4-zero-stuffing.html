@@ -1,0 +1,206 @@
+<h1>6.4 — Zero Stuffing</h1>
+<p class="topic-meta">Module 6 · Resampling · ~15 min</p>
+
+<h2>Introduction</h2>
+<p>Zero stuffing (also called zero insertion or zero-padding in the time domain) is the step of inserting zeros between samples when upsampling. It's the first step in the upsampling process we saw in Topic 6.2, but it's important enough to understand in isolation — especially to see exactly what it does to the spectrum and why an interpolation filter is essential afterward.</p>
+
+<h2>Core Concept</h2>
+<h3>What Zero Stuffing Does</h3>
+<p>For an upsampling factor $L$, zero stuffing creates:</p>
+
+$$x_L[n] = \begin{cases} x[n/L] & n = 0, L, 2L, \ldots \\ 0 & \text{otherwise} \end{cases}$$
+
+<p>Visually: every original sample is followed by $L-1$ zeros. The result is a signal at $L$ times the original sample rate — but it's <em>not</em> yet a properly interpolated signal. It looks like the original signal with gaps.</p>
+
+<h3>Spectral Consequence: Images</h3>
+<p>In the frequency domain, zero stuffing compresses the spectrum — but periodically repeats it. The $L \times$ upsampled signal has the same baseband content, plus $L-1$ spectral copies (images) spaced at multiples of the original Nyquist:</p>
+
+$$X_L(e^{j\hat\omega}) = X(e^{jL\hat\omega})$$
+
+<p>This periodicity means the original spectrum repeats $L$ times across the new $[0, \pi]$ range. An interpolation lowpass filter removes all but the baseband copy.</p>
+
+<div class="callout">
+  <strong>Key distinction from zero-padding (Topic 3.2 / 6.5):</strong><br>
+  <strong>Zero stuffing</strong> inserts zeros <em>between</em> samples in the <strong>time domain</strong> → used for upsampling.<br>
+  <strong>Zero padding</strong> appends zeros to the <em>end</em> of a signal → used for FFT interpolation in frequency domain.
+</div>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 160" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="10">
+    <!-- Original: x[0..3] -->
+    <text x="120" y="12" text-anchor="middle" fill="#8892b0">Original x[n] (fs)</text>
+    <line x1="10" y1="130" x2="230" y2="130" stroke="#8892b0" stroke-width="1"/>
+    <line x1="10" y1="20" x2="10" y2="135" stroke="#8892b0" stroke-width="1"/>
+    <!-- 4 samples -->
+    <line x1="50"  y1="130" x2="50"  y2="55"  stroke="#00e5ff" stroke-width="3"/>
+    <circle cx="50"  cy="55"  r="5" fill="#00e5ff"/>
+    <line x1="100" y1="130" x2="100" y2="35"  stroke="#00e5ff" stroke-width="3"/>
+    <circle cx="100" cy="35"  r="5" fill="#00e5ff"/>
+    <line x1="150" y1="130" x2="150" y2="70"  stroke="#00e5ff" stroke-width="3"/>
+    <circle cx="150" cy="70"  r="5" fill="#00e5ff"/>
+    <line x1="200" y1="130" x2="200" y2="100" stroke="#00e5ff" stroke-width="3"/>
+    <circle cx="200" cy="100" r="5" fill="#00e5ff"/>
+    <text x="50"  y="143" text-anchor="middle" fill="#8892b0" font-size="8">0</text>
+    <text x="100" y="143" text-anchor="middle" fill="#8892b0" font-size="8">1</text>
+    <text x="150" y="143" text-anchor="middle" fill="#8892b0" font-size="8">2</text>
+    <text x="200" y="143" text-anchor="middle" fill="#8892b0" font-size="8">3</text>
+
+    <!-- After ×2 zero stuffing -->
+    <text x="390" y="12" text-anchor="middle" fill="#8892b0">After ×2 zero stuffing (2fs)</text>
+    <line x1="270" y1="130" x2="510" y2="130" stroke="#8892b0" stroke-width="1"/>
+    <line x1="270" y1="20" x2="270" y2="135" stroke="#8892b0" stroke-width="1"/>
+    <!-- 8 samples, alternating signal/zero -->
+    <line x1="295" y1="130" x2="295" y2="55"  stroke="#00e5ff" stroke-width="3"/>
+    <circle cx="295" cy="55"  r="5" fill="#00e5ff"/>
+    <line x1="320" y1="130" x2="320" y2="130" stroke="#8892b0" stroke-width="1"/>
+    <circle cx="320" cy="130" r="4" fill="none" stroke="#8892b0" stroke-width="1.5"/>
+    <line x1="345" y1="130" x2="345" y2="35"  stroke="#00e5ff" stroke-width="3"/>
+    <circle cx="345" cy="35"  r="5" fill="#00e5ff"/>
+    <line x1="370" y1="130" x2="370" y2="130" stroke="#8892b0" stroke-width="1"/>
+    <circle cx="370" cy="130" r="4" fill="none" stroke="#8892b0" stroke-width="1.5"/>
+    <line x1="395" y1="130" x2="395" y2="70"  stroke="#00e5ff" stroke-width="3"/>
+    <circle cx="395" cy="70"  r="5" fill="#00e5ff"/>
+    <line x1="420" y1="130" x2="420" y2="130" stroke="#8892b0" stroke-width="1"/>
+    <circle cx="420" cy="130" r="4" fill="none" stroke="#8892b0" stroke-width="1.5"/>
+    <line x1="445" y1="130" x2="445" y2="100" stroke="#00e5ff" stroke-width="3"/>
+    <circle cx="445" cy="100" r="5" fill="#00e5ff"/>
+    <line x1="470" y1="130" x2="470" y2="130" stroke="#8892b0" stroke-width="1"/>
+    <circle cx="470" cy="130" r="4" fill="none" stroke="#8892b0" stroke-width="1.5"/>
+
+    <text x="295" y="148" text-anchor="middle" fill="#8892b0" font-size="7">0</text>
+    <text x="320" y="148" text-anchor="middle" fill="#8892b0" font-size="7">0</text>
+    <text x="345" y="148" text-anchor="middle" fill="#8892b0" font-size="7">1</text>
+    <text x="370" y="148" text-anchor="middle" fill="#8892b0" font-size="7">0</text>
+    <text x="395" y="148" text-anchor="middle" fill="#8892b0" font-size="7">2</text>
+    <text x="420" y="148" text-anchor="middle" fill="#8892b0" font-size="7">0</text>
+    <text x="445" y="148" text-anchor="middle" fill="#8892b0" font-size="7">3</text>
+    <text x="470" y="148" text-anchor="middle" fill="#8892b0" font-size="7">0</text>
+
+    <text x="295" y="158" fill="#8892b0" font-size="7">← filled samples</text>
+    <text x="400" y="158" fill="#8892b0" font-size="7">← zeros inserted</text>
+  </svg>
+  <figcaption>Zero stuffing by L=2: every original sample (filled circles) is followed by one inserted zero (open circles). The signal gaps need to be filled by an interpolation filter.</figcaption>
+</div>
+
+<h2>Mathematical Foundation</h2>
+<p>Zero stuffing is equivalent to multiplying the original signal by a comb function (impulse train with period $L$). In the frequency domain, multiplication by an impulse train corresponds to convolution with another impulse train, creating periodic repetitions of the spectrum:</p>
+
+$$X_L(e^{j\hat\omega}) = X(e^{j\hat\omega L})$$
+
+<p>This is the original spectrum evaluated at $L$ times the digital frequency — meaning it's compressed by $L$ and thus repeated $L$ times across $[0, 2\pi]$.</p>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="Zero stuffing inserts zeros BETWEEN existing samples, increasing the sample rate. Zero padding appends zeros to the END of the signal, keeping the sample rate the same but increasing the DFT size for finer frequency resolution.">
+  <h3>Q1. How is zero stuffing different from zero padding?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">They are the same operation described differently</li>
+    <li class="quiz-option" data-correct="true">Zero stuffing inserts zeros between samples (upsampling); zero padding appends zeros at the end (DFT interpolation)</li>
+    <li class="quiz-option" data-correct="false">Zero stuffing is applied in the frequency domain</li>
+    <li class="quiz-option" data-correct="false">Zero padding changes the sampling rate; zero stuffing does not</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="After zero stuffing by L, the spectrum contains L-1 spectral images in addition to the baseband. They appear because the comb function's Fourier transform is also a comb (in frequency).">
+  <h3>Q2. After zero stuffing by $L=3$, the spectrum contains:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Only the baseband signal (no images)</li>
+    <li class="quiz-option" data-correct="true">The original baseband plus 2 additional spectral images</li>
+    <li class="quiz-option" data-correct="false">The original spectrum stretched by 3×</li>
+    <li class="quiz-option" data-correct="false">An aliased signal</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Zero stuffing alone (without the interpolation filter) produces a signal that looks like the original with gaps. It's NOT a properly upsampled signal because the zero samples make it discontinuous and distorted. The interpolation filter is needed to fill those gaps smoothly.">
+  <h3>Q3. Why is zero stuffing alone insufficient for correct upsampling?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">It changes the signal amplitude</li>
+    <li class="quiz-option" data-correct="true">The inserted zeros create spectral images and discontinuities; an interpolation filter is needed to remove images and fill in correct sample values</li>
+    <li class="quiz-option" data-correct="false">It aliases the signal</li>
+    <li class="quiz-option" data-correct="false">It only works for integer upsampling factors</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 6.4 Zero Stuffing vs Proper Upsampling
+
+fs = 500;
+L  = 4;
+T  = 0.1;
+t  = (0:1/fs:T-1/fs);
+f0 = 80;
+x  = sin(2*pi*f0*t);
+
+%% Method A: upsample() — zero stuffing only (MATLAB)
+x_stuffed = upsample(x, L);   % inserts L-1 zeros between each sample
+fs_new    = fs * L;
+t_new     = (0:length(x_stuffed)-1)/fs_new;
+
+%% Method B: zero stuffing + interpolation filter
+b_interp   = L * fir1(64, 1/L);
+x_interp   = filter(b_interp, 1, x_stuffed);
+
+%% Method C: resample() — polyphase (most accurate)
+x_resamp = resample(x, L, 1);
+
+%% Plots
+t_ref = (0:1/(fs*100):T);
+x_ref = sin(2*pi*f0*t_ref);   % very fine "true" reference
+
+figure('Name','Zero Stuffing vs Proper Upsampling');
+subplot(4,1,1);
+stem(t, x, 'filled', 'MarkerSize', 5); hold on;
+plot(t_ref, x_ref, 'k:', 'LineWidth', 0.5);
+title(sprintf('Original: fs=%d Hz', fs)); xlim([0 0.06]);
+
+subplot(4,1,2);
+stem(t_new, x_stuffed, 'filled', 'MarkerSize', 2);
+title(sprintf('After zero stuffing (L=%d, fs=%d Hz) — discontinuous!', L, fs_new)); xlim([0 0.06]);
+
+subplot(4,1,3);
+plot(t_new, x_interp); hold on;
+plot(t_ref, x_ref, 'k:');
+title('After interpolation filter — smooth'); xlim([0 0.06]);
+
+subplot(4,1,4);
+plot(t_new(1:length(x_resamp)), x_resamp); hold on;
+plot(t_ref, x_ref, 'k:');
+title('resample() polyphase — most accurate'); xlim([0 0.06]);
+
+%% Spectrum: show images
+N = length(x_stuffed);
+f_ax = (0:N/2-1)*fs_new/N;
+figure('Name','Zero Stuffing Spectrum');
+plot(f_ax, abs(fft(x_stuffed))*2/N, 'DisplayName','Zero stuffed');
+hold on;
+Na = length(x_interp);
+plot((0:Na/2-1)*fs_new/Na, abs(fft(x_interp))*2/Na, 'r', 'DisplayName','After interp filter');
+for k = 0:L; xline(fs/2 + k*fs, 'k:', sprintf('%dHz', round(fs/2+k*fs))); end
+legend; xlabel('Hz'); ylabel('|X|');
+title('Spectral images from zero stuffing → removed by interpolation filter');
+xlim([0 fs_new/2]);
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>The spectrum of the zero-stuffed signal shows the original 80 Hz peak plus images at 420 Hz, 580 Hz, 920 Hz... (at fs-80=420, fs+80=580, 2fs-80=920 etc.). The interpolation filter removes everything above fs/2=250 Hz, leaving only the 80 Hz baseband component.</p>
+</details>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Zero stuffing inserts $L-1$ zeros between each sample, increasing the sample rate to $L \cdot f_s$.</li>
+    <li>Results in spectral images — copies of the original spectrum at multiples of the original Nyquist.</li>
+    <li>Zero stuffing ≠ zero padding: stuffing goes between samples (time domain); padding appends to the end (for FFT).</li>
+    <li>After zero stuffing, always apply interpolation lowpass filter (cutoff = $\pi/L$, gain = $L$).</li>
+    <li>In MATLAB: <code>upsample(x, L)</code> for zero stuffing; <code>resample(x, L, 1)</code> for complete upsampling.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m6-resampling/6.3-downsampling'); return false;">← 6.3 Downsampling</a>
+  <a href="#" onclick="loadTopic('m6-resampling/6.5-zero-padding-recap'); return false;">Next: 6.5 Zero Padding (Recap) →</a>
+</div>

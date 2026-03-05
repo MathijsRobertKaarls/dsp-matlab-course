@@ -1,0 +1,206 @@
+<h1>1.1 — What is Digital Signal Processing?</h1>
+<p class="topic-meta">Module 1 · Foundations · ~15 min</p>
+
+<!-- ===== INTRODUCTION ===== -->
+<h2>Introduction</h2>
+<p>Imagine you're on a phone call. Your voice travels as sound waves through the air, gets converted to electrical variations, then turned into a stream of numbers, compressed, transmitted across the internet, reconstructed, and finally played back as sound — all in milliseconds. That entire chain? It's <strong>Digital Signal Processing (DSP)</strong> in action.</p>
+
+<p>In the simplest terms: a <strong>signal</strong> is information that changes over time (or space). DSP is the art and science of <em>manipulating that information once it's represented as numbers</em>.</p>
+
+<div class="callout">
+  <strong>💡 Key Idea</strong>
+  Analog signals are continuous — they can take any value at any instant. Digital signals are discrete — they're a list of numbers sampled at regular moments in time. DSP works in the digital world.
+</div>
+
+<!-- ===== CORE CONCEPT ===== -->
+<h2>Core Concept</h2>
+<h3>What is a signal?</h3>
+<p>A signal is any quantity that carries information and varies with respect to one or more independent variables. The most common case is variation over <strong>time</strong>, but signals can also vary over space (images), frequency, or other dimensions.</p>
+
+<p>Real-world examples you already know:</p>
+<ul>
+  <li><strong>Audio</strong> — air pressure varying with time (speech, music)</li>
+  <li><strong>ECG / EKG</strong> — electrical voltage from your heart over time</li>
+  <li><strong>Wi-Fi / Radio</strong> — electromagnetic waves carrying encoded data</li>
+  <li><strong>Seismograph</strong> — ground vibration amplitude over time</li>
+  <li><strong>Image sensor</strong> — light intensity varying across a 2D grid</li>
+</ul>
+
+<h3>Analog vs. Digital</h3>
+<p>The physical world is <strong>analog</strong> — temperature, pressure, voltage, all vary continuously. But computers can only work with <strong>discrete numbers</strong>. The transformation from analog to digital (and back) is a central concern of DSP.</p>
+
+<!-- Visual -->
+<div class="visual-box">
+  <svg viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg" font-family="monospace" font-size="11">
+    <!-- Axes left -->
+    <line x1="30" y1="10" x2="30" y2="175" stroke="#8892b0" stroke-width="1"/>
+    <line x1="30" y1="175" x2="250" y2="175" stroke="#8892b0" stroke-width="1"/>
+    <text x="120" y="195" fill="#8892b0" text-anchor="middle">Analog Signal</text>
+    <!-- Smooth sine wave -->
+    <path d="M30,90 C50,30 80,30 110,90 C140,150 170,150 200,90 C220,50 240,50 250,90"
+      stroke="#00e5ff" stroke-width="2.5" fill="none"/>
+    <text x="30" y="8" fill="#8892b0" font-size="10">Amplitude</text>
+
+    <!-- Axes right -->
+    <line x1="290" y1="10" x2="290" y2="175" stroke="#8892b0" stroke-width="1"/>
+    <line x1="290" y1="175" x2="510" y2="175" stroke="#8892b0" stroke-width="1"/>
+    <text x="400" y="195" fill="#8892b0" text-anchor="middle">Digital Signal (sampled)</text>
+    <!-- Stem plot -->
+    <line x1="300" y1="175" x2="300" y2="113" stroke="#7c3aed" stroke-width="2"/>
+    <circle cx="300" cy="113" r="4" fill="#7c3aed"/>
+    <line x1="325" y1="175" x2="325" y2="59" stroke="#7c3aed" stroke-width="2"/>
+    <circle cx="325" cy="59" r="4" fill="#7c3aed"/>
+    <line x1="350" y1="175" x2="350" y2="30" stroke="#7c3aed" stroke-width="2"/>
+    <circle cx="350" cy="30" r="4" fill="#7c3aed"/>
+    <line x1="375" y1="175" x2="375" y2="65" stroke="#7c3aed" stroke-width="2"/>
+    <circle cx="375" cy="65" r="4" fill="#7c3aed"/>
+    <line x1="400" y1="175" x2="400" y2="120" stroke="#7c3aed" stroke-width="2"/>
+    <circle cx="400" cy="120" r="4" fill="#7c3aed"/>
+    <line x1="425" y1="175" x2="425" y2="155" stroke="#7c3aed" stroke-width="2"/>
+    <circle cx="425" cy="155" r="4" fill="#7c3aed"/>
+    <line x1="450" y1="175" x2="450" y2="133" stroke="#7c3aed" stroke-width="2"/>
+    <circle cx="450" cy="133" r="4" fill="#7c3aed"/>
+    <line x1="475" y1="175" x2="475" y2="74" stroke="#7c3aed" stroke-width="2"/>
+    <circle cx="475" cy="74" r="4" fill="#7c3aed"/>
+    <line x1="500" y1="175" x2="500" y2="38" stroke="#7c3aed" stroke-width="2"/>
+    <circle cx="500" cy="38" r="4" fill="#7c3aed"/>
+  </svg>
+  <figcaption>Left: continuous analog signal. Right: discrete digital samples (stem plot). Each dot is one number stored in memory.</figcaption>
+</div>
+
+<h3>What does "processing" mean?</h3>
+<p>Once you have a sequence of numbers (your digital signal), you can:</p>
+<ul>
+  <li><strong>Filter</strong> — remove noise, isolate a frequency band</li>
+  <li><strong>Transform</strong> — see which frequencies are present (Fourier Transform)</li>
+  <li><strong>Compress</strong> — reduce data size (MP3, JPEG)</li>
+  <li><strong>Detect</strong> — find patterns (radar target detection, ECG anomaly)</li>
+  <li><strong>Synthesize</strong> — generate new signals (speech synthesis, music)</li>
+</ul>
+
+<!-- ===== MATH ===== -->
+<h2>Mathematical Foundation</h2>
+<p>A digital signal is represented as a <strong>sequence</strong>:</p>
+
+$$x[n], \quad n = 0, 1, 2, \ldots, N-1$$
+
+<p>where:</p>
+<ul>
+  <li>$x$ — the signal (e.g. recorded audio)</li>
+  <li>$n$ — the sample index (integer, dimensionless)</li>
+  <li>$N$ — total number of samples</li>
+  <li>$x[n]$ — the value of the signal at sample $n$ (a real or complex number)</li>
+</ul>
+
+<p>The <strong>sampling period</strong> $T_s$ (in seconds) and <strong>sampling frequency</strong> $f_s$ (in Hz) are related by:</p>
+
+$$T_s = \frac{1}{f_s}$$
+
+<p>The actual time corresponding to sample $n$ is: $t = n \cdot T_s$</p>
+
+<div class="callout">
+  <strong>Example:</strong> CD audio is sampled at $f_s = 44100$ Hz. That means $T_s \approx 22.7\,\mu s$ — one new number every 22.7 microseconds. A 3-minute song contains about 7.9 million samples per channel.
+</div>
+
+<!-- ===== QUIZ ===== -->
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="A digital signal is a discrete sequence of numbers. Analog signals are continuous — they exist at every instant in time, not just at sampled moments.">
+  <h3>Q1. Which of the following best describes a digital signal?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">A continuously varying electrical voltage</li>
+    <li class="quiz-option" data-correct="true">A sequence of discrete numbers measured at regular time intervals</li>
+    <li class="quiz-option" data-correct="false">Any signal that uses binary code internally</li>
+    <li class="quiz-option" data-correct="false">A signal with no noise</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="The sampling frequency fs = 1/Ts. With Ts = 0.001 s, fs = 1000 Hz = 1 kHz.">
+  <h3>Q2. If a signal is sampled every $T_s = 0.001$ seconds, what is the sampling frequency?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">100 Hz</li>
+    <li class="quiz-option" data-correct="true">1000 Hz (1 kHz)</li>
+    <li class="quiz-option" data-correct="false">10 kHz</li>
+    <li class="quiz-option" data-correct="false">0.001 Hz</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="DSP operates on discrete (digital) representations of signals. Real-world signals are analog; ADCs convert them to digital for processing, and DACs convert back.">
+  <h3>Q3. DSP operates on which type of signal?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Purely analog signals</li>
+    <li class="quiz-option" data-correct="false">Only audio signals</li>
+    <li class="quiz-option" data-correct="true">Discrete (digital) representations of signals</li>
+    <li class="quiz-option" data-correct="false">Electromagnetic waves directly</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<!-- ===== MATLAB EXERCISE ===== -->
+<h2>MATLAB Exercise</h2>
+<p>Let's generate and play your first digital signal — a simple sine wave.</p>
+
+<pre><code class="language-matlab">%% 1.1 Your first digital signal
+% Sampling parameters
+fs = 8000;          % Sampling frequency (Hz) — like a low-quality phone call
+T  = 1;             % Duration in seconds
+t  = 0:1/fs:T-1/fs; % Time vector: N = fs*T = 8000 samples
+
+% Generate a 440 Hz sine wave (concert pitch A)
+f0 = 440;           % Signal frequency in Hz
+x  = sin(2*pi*f0*t);
+
+% Plot it
+figure;
+subplot(2,1,1);
+plot(t, x);
+xlabel('Time (s)'); ylabel('Amplitude');
+title('440 Hz sine wave — full 1 second');
+xlim([0 0.01]);     % Zoom to first 10 ms so you can see the wave
+
+subplot(2,1,2);
+stem(0:39, x(1:40), 'filled', 'MarkerSize', 3);
+xlabel('Sample index n'); ylabel('x[n]');
+title('First 40 samples as discrete sequence');
+
+% Play it (requires speakers/headphones)
+sound(x, fs);
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint — What should you observe?</summary>
+  <p>The top plot shows a smooth-looking wave over 10 ms — you'll see about 4.4 full cycles (440 cycles/s × 0.01 s). The bottom stem plot shows individual sample values as dots. Each dot is one number stored in memory. Between the dots there is <em>no information</em> — that's the fundamental nature of a digital signal.</p>
+</details>
+
+<h3>Exercise Questions</h3>
+<ol>
+  <li>How many total samples are in the array <code>x</code>? Check with <code>length(x)</code> in MATLAB.</li>
+  <li>Change <code>fs</code> to <code>44100</code> (CD quality). How many samples do you get now?</li>
+  <li>Change <code>f0</code> to <code>880</code>. How does the sound change? What changes in the plot?</li>
+</ol>
+
+<h3>Expected outputs</h3>
+<ul>
+  <li><code>fs=8000, T=1</code>: <code>length(x) = 8000</code></li>
+  <li><code>fs=44100, T=1</code>: <code>length(x) = 44100</code></li>
+  <li>At 880 Hz the tone is one octave higher; you'll see twice as many wave cycles in the same time window.</li>
+</ul>
+
+<!-- ===== TAKEAWAYS ===== -->
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>A <strong>signal</strong> is information that varies over time (or space).</li>
+    <li>A <strong>digital signal</strong> is a sequence of discrete numbers $x[n]$ sampled at rate $f_s$.</li>
+    <li>Sampling frequency $f_s = 1/T_s$ determines how many numbers represent one second of signal.</li>
+    <li>DSP manipulates these numbers mathematically — filtering, transforming, compressing, detecting.</li>
+    <li>Real-world applications span audio, communications, biomedical, radar, and image processing.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <span></span>
+  <a href="#" onclick="loadTopic('m1-foundations/1.2-sampling'); return false;">Next: 1.2 Sampling (ADC &amp; DAC) →</a>
+</div>

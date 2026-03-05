@@ -1,0 +1,257 @@
+<h1>1.2 — Sampling (ADC &amp; DAC)</h1>
+<p class="topic-meta">Module 1 · Foundations · ~20 min</p>
+
+<h2>Introduction</h2>
+<p>Imagine trying to describe a smooth curve by choosing a series of points on it. If you pick points far apart, you might miss key features of the curve — or worse, misrepresent it entirely. If you pick points very close together, you capture the shape accurately, but you have a lot of data to store.</p>
+<p>This trade-off is <strong>sampling</strong>: converting a continuous analog signal into a sequence of discrete numbers. It is the gateway between the physical world and digital computers, performed by an <strong>Analog-to-Digital Converter (ADC)</strong>.</p>
+
+<div class="callout">
+  <strong>💡 Core Insight</strong>
+  You don't need to sample infinitely fast. There's a minimum safe sampling rate — the <strong>Nyquist rate</strong> — that guarantees perfect reconstruction. Sample faster than that and you're safe. Sample slower and you get <strong>aliasing</strong> (covered in Topic 2.2).
+</div>
+
+<!-- ===== CORE CONCEPT ===== -->
+<h2>Core Concept</h2>
+
+<h3>The Nyquist–Shannon Sampling Theorem</h3>
+<p>This is arguably the most important result in all of DSP. It states:</p>
+<blockquote style="border-left:3px solid var(--accent); padding-left:1rem; color:var(--text-muted); margin:1rem 0;">
+  <em>A bandlimited signal with highest frequency component $f_{max}$ can be perfectly reconstructed from its samples, provided the sampling frequency satisfies:</em>
+</blockquote>
+
+$$f_s \geq 2 \cdot f_{max}$$
+
+<p>The minimum safe rate $2 \cdot f_{max}$ is called the <strong>Nyquist rate</strong>. Half of the sampling frequency, $f_{Nyquist} = f_s / 2$, is called the <strong>Nyquist frequency</strong> — this is the highest frequency your system can represent.</p>
+
+<h3>Quantization</h3>
+<p>Sampling gives you the <em>timing</em> of measurements. But values must also be rounded to a finite set of levels — this is <strong>quantization</strong>. An ADC with $B$ bits maps signal amplitude to one of $2^B$ discrete levels.</p>
+<ul>
+  <li><strong>8-bit audio</strong>: 256 levels — noticeably "crunchy"</li>
+  <li><strong>16-bit CD audio</strong>: 65,536 levels — smooth, clean</li>
+  <li><strong>24-bit studio</strong>: 16.7 million levels — professional grade</li>
+</ul>
+<p>The rounding error introduced by quantization is called <strong>quantization noise</strong>. Each extra bit adds ~6 dB of signal-to-noise ratio.</p>
+
+<h3>ADC and DAC</h3>
+<p>The full signal chain looks like this:</p>
+
+<div class="visual-box">
+  <svg viewBox="0 0 620 90" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="11">
+    <!-- Boxes -->
+    <rect x="10" y="25" width="90" height="40" rx="6" fill="none" stroke="#8892b0" stroke-width="1.5"/>
+    <text x="55" y="49" text-anchor="middle" fill="#e8eaf6">Analog</text>
+    <text x="55" y="62" text-anchor="middle" fill="#8892b0">source</text>
+
+    <rect x="140" y="25" width="90" height="40" rx="6" fill="none" stroke="#00e5ff" stroke-width="1.5"/>
+    <text x="185" y="49" text-anchor="middle" fill="#00e5ff">ADC</text>
+    <text x="185" y="62" text-anchor="middle" fill="#8892b0">Sample+Quantize</text>
+
+    <rect x="270" y="25" width="90" height="40" rx="6" fill="none" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="315" y="49" text-anchor="middle" fill="#e8eaf6">DSP</text>
+    <text x="315" y="62" text-anchor="middle" fill="#8892b0">Algorithm</text>
+
+    <rect x="400" y="25" width="90" height="40" rx="6" fill="none" stroke="#00e5ff" stroke-width="1.5"/>
+    <text x="445" y="49" text-anchor="middle" fill="#00e5ff">DAC</text>
+    <text x="445" y="62" text-anchor="middle" fill="#8892b0">Reconstruct</text>
+
+    <rect x="530" y="25" width="80" height="40" rx="6" fill="none" stroke="#8892b0" stroke-width="1.5"/>
+    <text x="570" y="49" text-anchor="middle" fill="#e8eaf6">Analog</text>
+    <text x="570" y="62" text-anchor="middle" fill="#8892b0">output</text>
+
+    <!-- Arrows -->
+    <line x1="100" y1="45" x2="138" y2="45" stroke="#8892b0" stroke-width="1.5" marker-end="url(#arr)"/>
+    <line x1="230" y1="45" x2="268" y2="45" stroke="#8892b0" stroke-width="1.5" marker-end="url(#arr)"/>
+    <line x1="360" y1="45" x2="398" y2="45" stroke="#8892b0" stroke-width="1.5" marker-end="url(#arr)"/>
+    <line x1="490" y1="45" x2="528" y2="45" stroke="#8892b0" stroke-width="1.5" marker-end="url(#arr)"/>
+    <defs>
+      <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#8892b0"/>
+      </marker>
+    </defs>
+
+    <!-- Labels -->
+    <text x="119" y="38" text-anchor="middle" fill="#8892b0" font-size="9">~</text>
+    <text x="249" y="38" text-anchor="middle" fill="#8892b0" font-size="9">x[n]</text>
+    <text x="379" y="38" text-anchor="middle" fill="#8892b0" font-size="9">y[n]</text>
+    <text x="509" y="38" text-anchor="middle" fill="#8892b0" font-size="9">~</text>
+  </svg>
+  <figcaption>The digital signal processing chain. The ADC digitizes the analog input; the DAC converts processed samples back to analog.</figcaption>
+</div>
+
+<!-- ===== MATH ===== -->
+<h2>Mathematical Foundation</h2>
+
+<h3>Sampling</h3>
+<p>Mathematically, sampling multiplies the continuous signal $x_a(t)$ by an <strong>impulse train</strong>:</p>
+
+$$x[n] = x_a(n \cdot T_s) = x_a\!\left(\frac{n}{f_s}\right)$$
+
+<h3>Quantization</h3>
+<p>With $B$ bits and signal range $[-A, +A]$, the step size (resolution) is:</p>
+
+$$\Delta = \frac{2A}{2^B - 1}$$
+
+<p>The quantized value is the nearest representable level. The maximum quantization error is $\pm \Delta/2$.</p>
+
+<h3>Signal-to-Quantization-Noise Ratio (SQNR)</h3>
+<p>For a full-scale sinusoidal input:</p>
+
+$$\text{SQNR} \approx 6.02 \cdot B + 1.76 \;\text{dB}$$
+
+<p>Every additional bit of resolution adds approximately <strong>6 dB</strong> of SQNR.</p>
+
+<div class="callout">
+  <strong>Example:</strong> 16-bit audio: SQNR ≈ 6.02 × 16 + 1.76 ≈ <strong>98 dB</strong> — that's why CD audio sounds clean.
+</div>
+
+<!-- ===== VISUAL: Quantization ===== -->
+<div class="visual-box">
+  <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" font-family="monospace" font-size="10">
+    <!-- Axes -->
+    <line x1="40" y1="10" x2="40" y2="180" stroke="#8892b0" stroke-width="1"/>
+    <line x1="40" y1="180" x2="390" y2="180" stroke="#8892b0" stroke-width="1"/>
+    <text x="215" y="198" text-anchor="middle" fill="#8892b0">Time →</text>
+    <text x="15" y="100" fill="#8892b0" transform="rotate(-90,15,100)">Amplitude</text>
+
+    <!-- Quantization levels (3-bit = 8 levels) -->
+    <line x1="40" y1="20" x2="390" y2="20" stroke="#2e3352" stroke-dasharray="3,4" stroke-width="1"/>
+    <line x1="40" y1="43" x2="390" y2="43" stroke="#2e3352" stroke-dasharray="3,4" stroke-width="1"/>
+    <line x1="40" y1="66" x2="390" y2="66" stroke="#2e3352" stroke-dasharray="3,4" stroke-width="1"/>
+    <line x1="40" y1="89" x2="390" y2="89" stroke="#2e3352" stroke-dasharray="3,4" stroke-width="1"/>
+    <line x1="40" y1="112" x2="390" y2="112" stroke="#2e3352" stroke-dasharray="3,4" stroke-width="1"/>
+    <line x1="40" y1="135" x2="390" y2="135" stroke="#2e3352" stroke-dasharray="3,4" stroke-width="1"/>
+    <line x1="40" y1="158" x2="390" y2="158" stroke="#2e3352" stroke-dasharray="3,4" stroke-width="1"/>
+    <text x="34" y="23" text-anchor="end" fill="#5a6480">7</text>
+    <text x="34" y="46" text-anchor="end" fill="#5a6480">6</text>
+    <text x="34" y="69" text-anchor="end" fill="#5a6480">5</text>
+    <text x="34" y="92" text-anchor="end" fill="#5a6480">4</text>
+    <text x="34" y="115" text-anchor="end" fill="#5a6480">3</text>
+    <text x="34" y="138" text-anchor="end" fill="#5a6480">2</text>
+    <text x="34" y="161" text-anchor="end" fill="#5a6480">1</text>
+
+    <!-- Analog signal -->
+    <path d="M40,155 Q100,20 200,89 Q300,158 390,43"
+      stroke="#00e5ff" stroke-width="2" fill="none" stroke-dasharray="5,3"/>
+
+    <!-- Quantized (staircase) -->
+    <polyline points="40,158 80,158 80,135 115,135 115,66 150,66 150,43 190,43 190,66 225,66 225,89 265,89 265,112 300,112 300,135 340,135 340,66 390,66"
+      stroke="#7c3aed" stroke-width="2" fill="none"/>
+  </svg>
+  <figcaption>Blue dashed: original analog signal. Purple: quantized (3-bit = 8 levels) staircase approximation. More bits = finer steps = less error.</figcaption>
+</div>
+
+<!-- ===== QUIZ ===== -->
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="The Nyquist theorem requires fs ≥ 2·fmax. Human hearing goes up to ~20 kHz, so fs must be at least 40 kHz. CD audio uses 44.1 kHz, which satisfies this with a small margin.">
+  <h3>Q1. Human hearing extends to ~20 kHz. What is the minimum sampling rate to digitize audio without aliasing?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">20 kHz</li>
+    <li class="quiz-option" data-correct="true">40 kHz</li>
+    <li class="quiz-option" data-correct="false">8 kHz</li>
+    <li class="quiz-option" data-correct="false">100 kHz</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="SQNR ≈ 6.02B + 1.76 dB. Each extra bit adds ~6 dB. Going from 8 to 16 bits adds 8 × 6 = 48 dB.">
+  <h3>Q2. Increasing bit depth from 8 bits to 16 bits improves the quantization noise ratio by approximately:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">6 dB</li>
+    <li class="quiz-option" data-correct="false">16 dB</li>
+    <li class="quiz-option" data-correct="true">48 dB</li>
+    <li class="quiz-option" data-correct="false">96 dB</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="The DAC converts digital numbers back to an analog signal (electrical voltage), which can then drive speakers, actuators, etc.">
+  <h3>Q3. What does a DAC (Digital-to-Analog Converter) do?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Measures and digitizes an analog signal</li>
+    <li class="quiz-option" data-correct="true">Converts a sequence of digital numbers back into a continuous analog signal</li>
+    <li class="quiz-option" data-correct="false">Amplifies a digital signal</li>
+    <li class="quiz-option" data-correct="false">Removes noise from a digital signal</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<!-- ===== MATLAB ===== -->
+<h2>MATLAB Exercise</h2>
+<p>We'll simulate sampling at different rates and observe quantization.</p>
+
+<pre><code class="language-matlab">%% 1.2 Sampling and Quantization Demo
+
+% --- Part A: Effect of sampling rate ---
+fs_high = 1000;   % High sampling rate (safe)
+fs_low  = 150;    % Low sampling rate (may alias — try values below 200)
+f0 = 100;         % Signal frequency (Hz)
+T  = 0.05;        % Duration (s)
+
+t_high = 0:1/fs_high:T;
+t_low  = 0:1/fs_low:T;
+t_cont = 0:1/10000:T;   % "Continuous" reference
+
+x_cont  = sin(2*pi*f0*t_cont);
+x_high  = sin(2*pi*f0*t_high);
+x_low   = sin(2*pi*f0*t_low);
+
+figure('Name','Sampling Rate Effect');
+subplot(3,1,1); plot(t_cont, x_cont); title('Original (continuous)'); ylabel('x(t)');
+subplot(3,1,2); stem(t_high, x_high, 'filled'); title(sprintf('Sampled at %d Hz (safe)', fs_high));
+subplot(3,1,3); stem(t_low,  x_low,  'filled'); title(sprintf('Sampled at %d Hz', fs_low));
+xlabel('Time (s)');
+
+% --- Part B: Quantization effect ---
+fs = 8000; t = 0:1/fs:0.5;
+x = sin(2*pi*440*t);
+
+bits_list = [2, 4, 8, 16];
+figure('Name','Quantization Effect');
+for k = 1:4
+  B = bits_list(k);
+  levels = 2^B;
+  % Quantize: scale to [0, levels-1], round, scale back to [-1,1]
+  x_q = round((x + 1) / 2 * (levels - 1)) / (levels - 1) * 2 - 1;
+  subplot(2,2,k);
+  plot(t(1:200), x(1:200), '--', 'Color', [0.3 0.7 1]);
+  hold on;
+  plot(t(1:200), x_q(1:200), 'Color', [0.5 0.2 0.9]);
+  title(sprintf('%d-bit (%d levels)', B, levels));
+  ylim([-1.2 1.2]); ylabel('Amplitude');
+  legend('Original','Quantized','Location','northeast');
+end
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>In Part A, compare the low-rate stem plot to the original. Can you still identify the 100 Hz wave from the sparse samples? In Part B, at 2-bit quantization you'll see a very coarse "staircase" approximation; by 16 bits the quantized signal is indistinguishable from the original in the plot.</p>
+</details>
+
+<h3>Exercise Questions</h3>
+<ol>
+  <li>What is the Nyquist frequency when <code>fs = 150 Hz</code> and <code>f0 = 100 Hz</code>? Is the signal aliased?</li>
+  <li>Change <code>fs_low</code> to <code>250</code>. Does the 100 Hz signal survive correctly?</li>
+  <li>For the 4-bit quantization case, how many distinct amplitude levels can you count in the plot?</li>
+</ol>
+
+<div class="callout warning">
+  <strong>⚠ Toolbox note</strong>
+  This exercise uses only base MATLAB functions. No toolboxes required.
+</div>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Sampling converts continuous signals to discrete sequences; $f_s = 1/T_s$.</li>
+    <li>The <strong>Nyquist theorem</strong>: sample at $f_s \geq 2 f_{max}$ for perfect reconstruction.</li>
+    <li><strong>Quantization</strong> maps each sample to a finite number of levels; $B$ bits → $2^B$ levels.</li>
+    <li>Each extra bit of resolution adds ~6 dB of SQNR.</li>
+    <li>ADC = analog → digital; DAC = digital → analog.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m1-foundations/1.1-what-is-dsp'); return false;">← 1.1 What is DSP?</a>
+  <a href="#" onclick="loadTopic('m1-foundations/1.3-stationary-signals'); return false;">Next: 1.3 Stationary &amp; Periodic Signals →</a>
+</div>

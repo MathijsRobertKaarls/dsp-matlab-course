@@ -1,0 +1,229 @@
+<h1>1.4 — Causal, Linear &amp; Time-Invariant Systems</h1>
+<p class="topic-meta">Module 1 · Foundations · ~25 min</p>
+
+<h2>Introduction</h2>
+<p>A <strong>system</strong> takes a signal in and produces a signal out. Your smartphone's equalizer is a system. A filter that removes power-line hum is a system. Even the act of averaging consecutive samples is a system.</p>
+<p>To analyze and design systems rigorously, we classify them by their properties. The most important class in DSP is the <strong>LTI system</strong> — <em>Linear and Time-Invariant</em>. Understanding why this class is special unlocks the most powerful tools in DSP: the Fourier Transform, the Z-Transform, and convolution.</p>
+
+<!-- ===== CORE CONCEPT ===== -->
+<h2>Core Concept</h2>
+
+<h3>What is a System?</h3>
+<p>A system $\mathcal{H}$ maps an input signal $x[n]$ to an output signal $y[n]$:</p>
+
+$$y[n] = \mathcal{H}\{x[n]\}$$
+
+<h3>Linearity</h3>
+<p>A system is <strong>linear</strong> if it satisfies two properties:</p>
+<ol>
+  <li><strong>Superposition (additivity)</strong>: If input $x_1$ produces $y_1$ and input $x_2$ produces $y_2$, then input $x_1 + x_2$ produces $y_1 + y_2$.</li>
+  <li><strong>Homogeneity (scaling)</strong>: If input $x$ produces output $y$, then input $ax$ produces output $ay$ for any constant $a$.</li>
+</ol>
+<p>Together: $\mathcal{H}\{a \cdot x_1[n] + b \cdot x_2[n]\} = a \cdot y_1[n] + b \cdot y_2[n]$</p>
+
+<div class="callout">
+  <strong>Analogy:</strong> A linear amplifier that doubles voltage: input 3V → 6V, input 5V → 10V, input 3+5=8V → 16V. Perfectly linear. A clipping amplifier that saturates at 8V is <em>not</em> linear (8V+anything → 8V).
+</div>
+
+<h3>Time-Invariance</h3>
+<p>A system is <strong>time-invariant</strong> if a delayed input produces the same output, just delayed by the same amount:</p>
+
+$$\text{If } x[n] \to y[n], \text{ then } x[n - k] \to y[n - k] \text{ for any integer } k$$
+
+<p>In other words: the system doesn't care <em>when</em> you apply the input — the relationship between input and output stays the same at all times. A thermostat set to 20°C is time-invariant. A timer that behaves differently in the morning than at night is not.</p>
+
+<h3>Causality</h3>
+<p>A system is <strong>causal</strong> if the output at time $n$ depends only on present and past inputs, never on future inputs:</p>
+
+$$y[n] = f(x[n], x[n-1], x[n-2], \ldots)$$
+
+<p>This is a physical necessity for real-time systems — you can't know the future! However, in offline processing (post-recording), non-causal filters are allowed and often preferred (they can have zero phase distortion).</p>
+
+<div class="callout warning">
+  <strong>Example — Non-causal filter:</strong> A centered moving average: $y[n] = \frac{1}{3}(x[n-1] + x[n] + x[n+1])$ uses a future sample $x[n+1]$. This is fine for processing a recorded ECG but impossible for live audio.
+</div>
+
+<h3>Why LTI is So Powerful: Convolution</h3>
+<p>For an LTI system, the output is always the <strong>convolution</strong> of the input with the system's <strong>impulse response</strong> $h[n]$:</p>
+
+$$y[n] = x[n] * h[n] = \sum_{k=-\infty}^{\infty} x[k] \cdot h[n-k]$$
+
+<p>The impulse response $h[n]$ <em>completely characterizes</em> an LTI system. Feed in one sharp impulse, measure the output — and you know everything about how that system will respond to any input.</p>
+
+<div class="visual-box">
+  <svg viewBox="0 0 500 160" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="11">
+    <!-- Input box -->
+    <rect x="20" y="60" width="90" height="40" rx="8" fill="none" stroke="#8892b0" stroke-width="1.5"/>
+    <text x="65" y="84" text-anchor="middle" fill="#e8eaf6">Input x[n]</text>
+
+    <!-- Arrow -->
+    <line x1="110" y1="80" x2="155" y2="80" stroke="#8892b0" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+    <!-- System box -->
+    <rect x="155" y="50" width="110" height="60" rx="8" fill="var(--surface2)" stroke="#00e5ff" stroke-width="2"/>
+    <text x="210" y="75" text-anchor="middle" fill="#00e5ff" font-weight="bold">LTI System</text>
+    <text x="210" y="95" text-anchor="middle" fill="#8892b0">h[n] (impulse</text>
+    <text x="210" y="108" text-anchor="middle" fill="#8892b0">response)</text>
+
+    <!-- Arrow out -->
+    <line x1="265" y1="80" x2="310" y2="80" stroke="#8892b0" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+    <!-- Output box -->
+    <rect x="310" y="60" width="110" height="40" rx="8" fill="none" stroke="#8892b0" stroke-width="1.5"/>
+    <text x="365" y="84" text-anchor="middle" fill="#e8eaf6">y[n] = x[n]*h[n]</text>
+
+    <!-- Impulse input -->
+    <text x="65" y="130" text-anchor="middle" fill="#ffd740" font-size="10">δ[n] →</text>
+    <text x="210" y="145" text-anchor="middle" fill="#ffd740" font-size="10">→ y[n] = h[n]</text>
+
+    <defs>
+      <marker id="arr2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#8892b0"/>
+      </marker>
+    </defs>
+  </svg>
+  <figcaption>An LTI system is fully described by its impulse response $h[n]$. Any input produces output $y[n] = x[n] * h[n]$ (convolution).</figcaption>
+</div>
+
+<h3>BIBO Stability</h3>
+<p>A system is <strong>BIBO stable</strong> (Bounded Input → Bounded Output) if every bounded input produces a bounded output. For LTI systems, this requires:</p>
+
+$$\sum_{n=-\infty}^{\infty} |h[n]| < \infty$$
+
+<p>Unstable systems amplify inputs without bound — catastrophic in practice (think audio feedback squeal, or structural resonance in bridges).</p>
+
+<!-- ===== MATH ===== -->
+<h2>Mathematical Foundation</h2>
+
+<h3>The Unit Impulse</h3>
+
+$$\delta[n] = \begin{cases} 1 & n = 0 \\ 0 & n \neq 0 \end{cases}$$
+
+<p>Any signal can be expressed as a weighted sum of shifted impulses:</p>
+
+$$x[n] = \sum_{k=-\infty}^{\infty} x[k] \cdot \delta[n - k]$$
+
+<h3>Convolution Sum</h3>
+<p>Because the system is linear, it processes each impulse component independently; because it's time-invariant, a shifted impulse produces a shifted response:</p>
+
+$$y[n] = \sum_{k=-\infty}^{\infty} x[k] \cdot h[n-k] \triangleq (x * h)[n]$$
+
+<h3>Key property: Frequency domain</h3>
+<p>In the frequency domain, convolution becomes <strong>multiplication</strong>:</p>
+
+$$Y(e^{j\omega}) = X(e^{j\omega}) \cdot H(e^{j\omega})$$
+
+<p>This is why filters are easy to design in the frequency domain — just multiply your signal's spectrum by the filter's frequency response!</p>
+
+<!-- ===== QUIZ ===== -->
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="Squaring (y=x²) violates both additivity (a²+b² ≠ (a+b)²) and homogeneity (ka)²=k²a² ≠ ka²). It is nonlinear. The other operations are linear.">
+  <h3>Q1. Which system is <em>not</em> linear?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">$y[n] = 3 \cdot x[n]$ (scaling)</li>
+    <li class="quiz-option" data-correct="false">$y[n] = x[n] + x[n-1]$ (moving average)</li>
+    <li class="quiz-option" data-correct="true">$y[n] = x[n]^2$ (squaring)</li>
+    <li class="quiz-option" data-correct="false">$y[n] = x[n] - x[n-2]$ (differencing)</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="y[n] = x[n+1] uses a future sample — it looks ahead. This violates causality. In real-time systems this is impossible.">
+  <h3>Q2. Which system is <em>non-causal</em>?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">$y[n] = x[n]$</li>
+    <li class="quiz-option" data-correct="false">$y[n] = x[n] - x[n-1]$</li>
+    <li class="quiz-option" data-correct="true">$y[n] = x[n+1]$</li>
+    <li class="quiz-option" data-correct="false">$y[n] = 0.9 \cdot y[n-1] + x[n]$</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="The impulse response h[n] completely characterizes an LTI system. Given h[n], you can compute the output for any input via convolution: y[n] = x[n] * h[n].">
+  <h3>Q3. Why is the impulse response so important for LTI systems?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">It describes the system's output only for sine wave inputs</li>
+    <li class="quiz-option" data-correct="true">It completely characterizes the system — any output can be computed by convolving the input with it</li>
+    <li class="quiz-option" data-correct="false">It is required only for causal systems</li>
+    <li class="quiz-option" data-correct="false">It describes how fast the system responds to changes in sampling rate</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<!-- ===== MATLAB ===== -->
+<h2>MATLAB Exercise</h2>
+<p>Compute and visualize convolution. Design a simple moving average filter and observe its impulse response.</p>
+
+<pre><code class="language-matlab">%% 1.4 Convolution and Impulse Response
+
+%% Part A — Manual convolution: moving average filter
+% Impulse response: equal-weight average of M samples
+M = 5;
+h = ones(1, M) / M;   % FIR low-pass filter (moving average)
+
+% Generate a noisy signal
+fs = 1000; t = 0:1/fs:1-1/fs;
+x_clean = sin(2*pi*50*t);                    % 50 Hz sine
+x_noisy = x_clean + 0.8*randn(size(t));      % + noise
+
+% Apply filter via convolution
+y = conv(x_noisy, h, 'same');   % 'same' keeps output same length as input
+
+figure('Name','Moving Average Filter');
+subplot(3,1,1); plot(t, x_clean); title('Clean signal'); ylim([-3 3]);
+subplot(3,1,2); plot(t, x_noisy); title('Noisy signal'); ylim([-3 3]);
+subplot(3,1,3); plot(t, y);       title(sprintf('After moving average (M=%d)', M)); ylim([-3 3]);
+xlabel('Time (s)');
+
+%% Part B — Impulse response
+delta = [1 zeros(1, 49)];   % Unit impulse: 1 at n=0, zeros elsewhere
+h_out = conv(delta, h, 'full');
+
+figure('Name','Impulse Response');
+stem(h_out(1:10), 'filled');
+title('Impulse response of moving average filter');
+xlabel('Sample n'); ylabel('h[n]');
+
+%% Part C — Test linearity manually
+a = 2; b = -1;
+x1 = sin(2*pi*100*t);
+x2 = sin(2*pi*200*t);
+y_combined   = conv(a*x1 + b*x2, h, 'same');
+y_superposed = a*conv(x1, h, 'same') + b*conv(x2, h, 'same');
+
+fprintf('Max difference (should be ~0): %.2e\n', max(abs(y_combined - y_superposed)));
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>In Part A, the moving average smooths the noisy signal — but it also blurs sharp features. Larger $M$ = more smoothing but more lag. In Part B, the impulse response of an M-point moving average is simply M equal-height values of $1/M$ — a rectangular shape. In Part C, the max difference should be essentially 0 (floating point noise only), confirming linearity.</p>
+</details>
+
+<h3>Exercise Questions</h3>
+<ol>
+  <li>Change <code>M</code> from 5 to 20. What happens to the smoothing? Does the noisy signal get cleaner or more distorted?</li>
+  <li>What is the length of the convolution output when convolving a length-1000 signal with a length-5 filter? Check with <code>length(conv(x_noisy, h))</code>.</li>
+  <li>Why is the max difference in Part C essentially zero? What property of LTI systems does this confirm?</li>
+</ol>
+
+<div class="callout success">
+  <strong>✓ Module 1 Complete!</strong>
+  You now have the foundational vocabulary of DSP: signals, sampling, periodicity, and LTI systems. Module 2 takes these concepts into the frequency domain with the Fourier Transform.
+</div>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>A system maps input $x[n]$ to output $y[n]$; described by its properties: linear, time-invariant, causal.</li>
+    <li><strong>Linearity</strong>: superposition holds — $\mathcal{H}\{ax_1 + bx_2\} = a\mathcal{H}\{x_1\} + b\mathcal{H}\{x_2\}$.</li>
+    <li><strong>Time-invariance</strong>: shift input → same output, shifted.</li>
+    <li><strong>Causality</strong>: output depends only on present and past inputs.</li>
+    <li>LTI systems are fully described by their <strong>impulse response</strong> $h[n]$; output = convolution $y = x * h$.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m1-foundations/1.3-stationary-signals'); return false;">← 1.3 Stationary Signals</a>
+  <a href="#" onclick="loadTopic('m2-frequency/2.1-fourier-transform'); return false;">Next: Module 2 — Fourier Transform →</a>
+</div>

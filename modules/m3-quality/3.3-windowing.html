@@ -1,0 +1,206 @@
+<h1>3.3 — Taper Functions (Windowing)</h1>
+<p class="topic-meta">Module 3 · Signal Quality · ~20 min</p>
+
+<h2>Introduction</h2>
+<p>When you take an FFT, you only have a finite chunk of a signal — as if you're looking through a rectangular window in time. The problem: abruptly cutting off a signal at both ends causes the spectrum to "smear" energy across many frequencies, obscuring weak peaks near strong ones. This is <strong>spectral leakage</strong>.</p>
+<p><strong>Windowing</strong> (tapering) gently fades the signal to zero at both edges, dramatically reducing leakage — at the cost of slightly worse frequency resolution. Choosing the right window is a fundamental engineering trade-off.</p>
+
+<h2>Core Concept</h2>
+<h3>Why Leakage Happens</h3>
+<p>The rectangular window (no windowing) has a Fourier Transform shaped like a <strong>sinc function</strong> — with large sidelobes. Every frequency in your signal gets "smeared" by this sinc shape. A strong tone at 100 Hz contaminates neighboring frequencies at 101, 102 Hz etc.</p>
+
+<h3>Window Functions</h3>
+<p>Apply window $w[n]$ by pointwise multiplication before the FFT: $x_w[n] = x[n] \cdot w[n]$</p>
+
+<table style="width:100%;border-collapse:collapse;font-size:0.88rem;margin:1rem 0;">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent);">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Window</th>
+    <th style="padding:0.4rem 0.6rem">Sidelobe level</th>
+    <th style="padding:0.4rem 0.6rem">Main-lobe width</th>
+    <th style="padding:0.4rem 0.6rem">Best for</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.4rem 0.6rem"><strong>Rectangular</strong></td>
+    <td style="padding:0.4rem 0.6rem;text-align:center">−13 dB</td>
+    <td style="padding:0.4rem 0.6rem;text-align:center">Narrowest</td>
+    <td style="padding:0.4rem 0.6rem">Transient detection (not for leakage)</td>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.4rem 0.6rem"><strong>Hann</strong></td>
+    <td style="padding:0.4rem 0.6rem;text-align:center">−31 dB</td>
+    <td style="padding:0.4rem 0.6rem;text-align:center">Medium</td>
+    <td style="padding:0.4rem 0.6rem">General purpose ← <em>start here</em></td>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.4rem 0.6rem"><strong>Hamming</strong></td>
+    <td style="padding:0.4rem 0.6rem;text-align:center">−43 dB</td>
+    <td style="padding:0.4rem 0.6rem;text-align:center">Medium</td>
+    <td style="padding:0.4rem 0.6rem">Low-level signals near strong ones</td>
+  </tr>
+  <tr>
+    <td style="padding:0.4rem 0.6rem"><strong>Blackman</strong></td>
+    <td style="padding:0.4rem 0.6rem;text-align:center">−58 dB</td>
+    <td style="padding:0.4rem 0.6rem;text-align:center">Widest</td>
+    <td style="padding:0.4rem 0.6rem">Detecting weak signals near strong ones</td>
+  </tr>
+</table>
+
+<div class="visual-box">
+  <svg viewBox="0 0 500 160" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="10">
+    <line x1="20" y1="130" x2="480" y2="130" stroke="#8892b0" stroke-width="1"/>
+    <line x1="20" y1="20" x2="20" y2="135" stroke="#8892b0" stroke-width="1"/>
+    <text x="250" y="150" text-anchor="middle" fill="#8892b0">Sample index n</text>
+
+    <!-- Rectangular (flat top) -->
+    <polyline points="20,130 20,30 480,30 480,130" stroke="#ff5252" stroke-width="2" fill="none"/>
+    <text x="240" y="24" fill="#ff5252" text-anchor="middle">Rectangular</text>
+
+    <!-- Hann (cosine shape) -->
+    <path d="M20,130 C100,130 150,28 250,25 C350,28 400,130 480,130" stroke="#00e5ff" stroke-width="2" fill="none"/>
+    <text x="250" y="120" fill="#00e5ff" text-anchor="middle">Hann</text>
+
+    <!-- Blackman (narrower, flatter) -->
+    <path d="M20,130 C80,130 160,60 250,40 C340,60 420,130 480,130" stroke="#ffd740" stroke-width="2" fill="none" stroke-dasharray="5,3"/>
+    <text x="370" y="75" fill="#ffd740">Blackman</text>
+  </svg>
+  <figcaption>Window shapes in time domain. Rectangular: abrupt cutoff (high leakage). Hann: smooth cosine taper. Blackman: wider but even smoother taper (lowest sidelobes).</figcaption>
+</div>
+
+<h2>Mathematical Foundation</h2>
+<h3>Common window formulas</h3>
+<p><strong>Hann window</strong> (often incorrectly called "Hanning"):</p>
+
+$$w_{Hann}[n] = 0.5\left(1 - \cos\!\frac{2\pi n}{N-1}\right), \quad 0 \leq n \leq N-1$$
+
+<p><strong>Hamming window</strong>:</p>
+
+$$w_{Hamming}[n] = 0.54 - 0.46\cos\!\frac{2\pi n}{N-1}$$
+
+<p><strong>Blackman window</strong>:</p>
+
+$$w_{Blackman}[n] = 0.42 - 0.5\cos\!\frac{2\pi n}{N-1} + 0.08\cos\!\frac{4\pi n}{N-1}$$
+
+<h3>Effect on amplitude</h3>
+<p>Windowing scales down the signal (the window has mean < 1). To get correct amplitude estimates, normalize by the window's coherent gain (mean value):</p>
+
+$$|X_{corrected}| = \frac{|X_w[k]|}{\sum_n w[n] / N} \cdot \frac{2}{N}$$
+
+In MATLAB: divide by <code>mean(w)</code> after windowing.
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="Spectral leakage occurs because the DFT assumes the signal is periodic within the window. If the signal frequency doesn't fit exactly in the window, the sinc-shaped frequency response of the rectangular window smears energy into neighboring bins.">
+  <h3>Q1. Spectral leakage occurs because:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">The sampling rate is too low</li>
+    <li class="quiz-option" data-correct="true">The finite rectangular window has a sinc-shaped frequency response with large sidelobes that smear energy across bins</li>
+    <li class="quiz-option" data-correct="false">Zero-padding introduces extra frequency components</li>
+    <li class="quiz-option" data-correct="false">The signal contains too many harmonics</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Lower sidelobes (Blackman) = less leakage = better at detecting weak signals near strong ones. But the main lobe is wider, so frequency resolution (ability to separate close peaks) is worse. Hann/Hamming are good general-purpose compromises.">
+  <h3>Q2. You need to detect a very weak 200 Hz signal next to a strong 195 Hz signal. Which window is most appropriate?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Rectangular (narrowest main lobe)</li>
+    <li class="quiz-option" data-correct="false">Hann (general purpose)</li>
+    <li class="quiz-option" data-correct="true">Blackman (lowest sidelobes, best leakage rejection)</li>
+    <li class="quiz-option" data-correct="false">No window makes a difference here</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="When the signal frequency falls exactly on a DFT bin (integer number of cycles in the window), the rectangular window introduces NO leakage. But this is rarely guaranteed in practice.">
+  <h3>Q3. When does the rectangular window produce zero spectral leakage?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Never — rectangular always causes leakage</li>
+    <li class="quiz-option" data-correct="true">When the signal contains an exact integer number of cycles within the analysis window</li>
+    <li class="quiz-option" data-correct="false">When N is a power of 2</li>
+    <li class="quiz-option" data-correct="false">When the signal is zero-padded before the FFT</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 3.3 Window Functions and Spectral Leakage
+
+fs = 1000;  N = 256;
+t  = (0:N-1)/fs;
+
+% Two tones: strong at 100 Hz, weak at 130 Hz (−40 dB)
+f1 = 100; A1 = 1.0;
+f2 = 130; A2 = 0.01;   % 40 dB weaker
+x  = A1*sin(2*pi*f1*t) + A2*sin(2*pi*f2*t);
+
+% Add fractional bin offset to guarantee leakage
+f1 = 100.7;   % not on a bin
+x  = A1*sin(2*pi*f1*t) + A2*sin(2*pi*f2*t);
+
+windows = {'rectwin', 'hann', 'hamming', 'blackman'};
+colors  = {'r','b','g','m'};
+M = 2048;   % zero-pad for smooth display
+
+figure('Name','Window Comparison');
+for i = 1:4
+  w  = window(str2func(windows{i}), N);
+  xw = x .* w';
+  Xw = fft(xw, M);
+  f_ax = (0:M/2-1)*fs/M;
+  plot(f_ax, 20*log10(abs(Xw(1:M/2))*2/sum(w)), colors{i}, 'DisplayName', windows{i});
+  hold on;
+end
+xlabel('Frequency (Hz)'); ylabel('Magnitude (dBFS)');
+title(sprintf('Spectral Leakage: strong at ~%.1fHz, weak at %dHz (−40dB)', f1, f2));
+legend; xlim([60 200]); ylim([-80 5]);
+yline(-40, 'k--', '-40 dB target'); grid on;
+
+%% Window shapes in time domain
+figure('Name','Window Shapes');
+for i = 1:4
+  w = window(str2func(windows{i}), N);
+  plot(w, colors{i}, 'DisplayName', windows{i}); hold on;
+end
+xlabel('Sample n'); ylabel('w[n]'); title('Window Functions');
+legend;
+
+%% Frequency response of each window (sidelobes)
+figure('Name','Window Frequency Response');
+for i = 1:4
+  w  = window(str2func(windows{i}), N);
+  W  = fft(w, 4096);
+  W_norm = abs(W) / max(abs(W));
+  plot((0:2047)*fs/4096, 20*log10(W_norm(1:2048)), colors{i}, 'DisplayName', windows{i});
+  hold on;
+end
+xlabel('Hz'); ylabel('dB'); title('Window Frequency Response (sidelobes)');
+legend; xlim([0 150]); ylim([-80 5]); grid on;
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>With the rectangular window, the 130 Hz weak tone is likely buried in the leakage from the 100.7 Hz tone. With Blackman, the sidelobes are low enough to reveal the −40 dB peak at 130 Hz. Compare the sidelobe levels in the third figure — Blackman's fall off much faster than rectangular's.</p>
+</details>
+
+<h3>Exercise Questions</h3>
+<ol>
+  <li>Change <code>f1 = 100</code> (exact bin frequency at fs/N=3.9 Hz bins, 100/3.9 ≈ 25.6 — still not exact). What window shows the least leakage?</li>
+  <li>Change <code>A2 = 0.1</code> (−20 dB). Can the rectangular window now resolve the 130 Hz peak?</li>
+  <li>Which window would you use if you need the best frequency <em>resolution</em> (not best sidelobe suppression)? Why?</li>
+</ol>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li><strong>Spectral leakage</strong>: abrupt windowing smears energy into neighboring frequency bins.</li>
+    <li>Window functions taper the signal to zero at edges, reducing sidelobes.</li>
+    <li>Trade-off: lower sidelobes → wider main lobe → worse frequency resolution.</li>
+    <li><strong>Hann</strong>: great general-purpose default. <strong>Blackman</strong>: best leakage rejection. <strong>Rectangular</strong>: best resolution when leakage isn't a concern.</li>
+    <li>In MATLAB: <code>x .* hann(N)'</code> or <code>x .* hamming(N)'</code>.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m3-quality/3.2-zero-padding'); return false;">← 3.2 Zero-Padding</a>
+  <a href="#" onclick="loadTopic('m3-quality/3.4-interpolation'); return false;">Next: 3.4 Interpolation →</a>
+</div>

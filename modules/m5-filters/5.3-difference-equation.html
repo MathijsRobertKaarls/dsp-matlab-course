@@ -1,0 +1,218 @@
+<h1>5.3 — Difference Equation &amp; Implementation</h1>
+<p class="topic-meta">Module 5 · Filter Design · ~20 min</p>
+
+<h2>Introduction</h2>
+<p>A filter's behavior is most directly described by its <strong>difference equation</strong> — a recipe that tells you, sample by sample, how to compute each output from the inputs and previous outputs. This is what actually gets implemented in code or hardware. Understanding difference equations bridges the gap between abstract transfer functions and running code.</p>
+
+<h2>Core Concept</h2>
+<h3>General Difference Equation</h3>
+<p>The general form of a causal LTI filter:</p>
+
+$$y[n] = \sum_{k=0}^{M} b_k\, x[n-k] \;-\; \sum_{k=1}^{N} a_k\, y[n-k]$$
+
+<p>Reading this as code: to compute the current output $y[n]$, take a weighted sum of the current and $M$ past inputs, then add/subtract $N$ weighted past outputs.</p>
+
+<h3>Special Cases</h3>
+<ul>
+  <li><strong>FIR (MA filter)</strong>: $a_k = 0$ for all $k \geq 1$ — no feedback, pure feedforward.</li>
+  <li><strong>IIR (AR filter)</strong>: $b_k = 0$ for $k \geq 1$ — only current input, plus feedback.</li>
+  <li><strong>ARMA</strong>: both $b_k$ and $a_k$ nonzero — most general IIR.</li>
+</ul>
+
+<h3>Direct Form I and II</h3>
+<p><strong>Direct Form I</strong>: Implement the difference equation directly — two sets of delay lines (one for inputs, one for outputs). Simple to understand, but uses $M + N$ delay elements.</p>
+<p><strong>Direct Form II</strong> (transposed): Merges the two delay lines, requires only $\max(M, N)$ delays — more memory-efficient. This is what MATLAB's <code>filter()</code> uses internally.</p>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 160" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="10">
+    <!-- Direct Form I diagram (simplified 2nd order) -->
+    <text x="130" y="14" text-anchor="middle" fill="#8892b0">Direct Form I (2nd order IIR)</text>
+
+    <!-- x[n] input -->
+    <text x="10" y="55" fill="#00e5ff">x[n]</text>
+    <line x1="40" y1="52" x2="70" y2="52" stroke="#8892b0" stroke-width="1.5" marker-end="url(#a5)"/>
+
+    <!-- b0 branch -->
+    <text x="75" y="40" fill="#ffd740">b₀</text>
+    <line x1="80" y1="52" x2="140" y2="52" stroke="#ffd740" stroke-width="1.5" marker-end="url(#a5)"/>
+
+    <!-- z-1 box -->
+    <rect x="80" y="65" width="30" height="20" rx="3" fill="none" stroke="#8892b0" stroke-width="1.5"/>
+    <text x="95" y="79" text-anchor="middle" fill="#8892b0">z⁻¹</text>
+    <line x1="95" y1="52" x2="95" y2="65" stroke="#8892b0" stroke-width="1.5"/>
+    <text x="75" y="104" fill="#ffd740">b₁</text>
+    <line x1="95" y1="85" x2="95" y2="100" stroke="#8892b0" stroke-width="1.5"/>
+    <line x1="95" y1="100" x2="140" y2="100" stroke="#ffd740" stroke-width="1.5" marker-end="url(#a5)"/>
+
+    <!-- Adder / output -->
+    <circle cx="145" cy="75" r="12" fill="none" stroke="#00e5ff" stroke-width="1.5"/>
+    <text x="145" y="79" text-anchor="middle" fill="#00e5ff">+</text>
+    <line x1="140" y1="52" x2="143" y2="64" stroke="#ffd740" stroke-width="1.2"/>
+    <line x1="140" y1="100" x2="143" y2="86" stroke="#ffd740" stroke-width="1.2"/>
+
+    <!-- Output -->
+    <line x1="157" y1="75" x2="190" y2="75" stroke="#8892b0" stroke-width="1.5" marker-end="url(#a5)"/>
+    <text x="195" y="79" fill="#00e5ff">y[n]</text>
+
+    <!-- Feedback path -->
+    <line x1="185" y1="75" x2="185" y2="130" stroke="#ff5252" stroke-width="1.2"/>
+    <line x1="185" y1="130" x2="240" y2="130" stroke="#ff5252" stroke-width="1.2"/>
+    <rect x="240" y="120" width="30" height="20" rx="3" fill="none" stroke="#8892b0" stroke-width="1.5"/>
+    <text x="255" y="134" text-anchor="middle" fill="#8892b0">z⁻¹</text>
+    <text x="280" y="134" fill="#ff5252">-a₁</text>
+    <line x1="270" y1="130" x2="310" y2="130" stroke="#ff5252" stroke-width="1.2"/>
+    <line x1="310" y1="130" x2="310" y2="75" stroke="#ff5252" stroke-width="1.2"/>
+    <line x1="157" y1="75" x2="310" y2="75" stroke="#ff5252" stroke-width="1.2" stroke-dasharray="3,2"/>
+
+    <defs>
+      <marker id="a5" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+        <path d="M0,0 L5,2.5 L0,5 Z" fill="#8892b0"/>
+      </marker>
+    </defs>
+
+    <text x="130" y="155" text-anchor="middle" fill="#8892b0" font-size="9">Feedforward (b coefficients) + Feedback (a coefficients)</text>
+  </svg>
+  <figcaption>Direct Form I block diagram. Blue: signal path. Yellow: b (input) weights. Red: −a (feedback) weights. The z⁻¹ blocks are single-sample delays.</figcaption>
+</div>
+
+<h2>Mathematical Foundation</h2>
+<h3>Example: First-order lowpass IIR</h3>
+<p>The difference equation for a simple exponential smoothing filter:</p>
+
+$$y[n] = (1-\alpha)\, x[n] + \alpha\, y[n-1]$$
+
+<p>with $0 < \alpha < 1$. The corresponding transfer function:</p>
+
+$$H(z) = \frac{(1-\alpha)}{1 - \alpha z^{-1}}$$
+
+<p>Single pole at $z = \alpha$. As $\alpha \to 1$, the pole approaches the unit circle → narrower lowpass, slower response. As $\alpha \to 0$, the filter becomes a pass-through.</p>
+
+<h3>Implementing in a loop</h3>
+<pre style="margin:0"><code class="language-matlab">% Direct implementation of: y[n] = b0*x[n] + b1*x[n-1] - a1*y[n-1]
+function y = myfilter(b, a, x)
+  N = length(x);
+  y = zeros(1, N);
+  for n = 1:N
+    y(n) = b(1)*x(n);
+    if n > 1; y(n) = y(n) + b(2)*x(n-1) - a(2)*y(n-1); end
+    if n > 2; y(n) = y(n) + b(3)*x(n-2) - a(3)*y(n-2); end
+  end
+end
+</code></pre>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="An FIR filter has only b coefficients (feedforward path). Setting all a_k=0 means no feedback — the output depends only on current and past inputs, never on past outputs.">
+  <h3>Q1. An FIR filter's difference equation contains:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Only past output terms $y[n-k]$</li>
+    <li class="quiz-option" data-correct="true">Only input terms $x[n-k]$ — no feedback</li>
+    <li class="quiz-option" data-correct="false">Both input and feedback output terms</li>
+    <li class="quiz-option" data-correct="false">Only the current input $x[n]$</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="In the difference equation y[n] = 0.9*y[n-1] + x[n], to compute sample n=5 you need y[4], which requires y[3], which requires y[2]... it cascades back through all previous outputs. This is what makes it IIR (infinite impulse response).">
+  <h3>Q2. For the filter $y[n] = 0.9\,y[n-1] + x[n]$, computing $y[5]$ requires knowing:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Only $x[5]$</li>
+    <li class="quiz-option" data-correct="false">$x[5]$ and $x[4]$</li>
+    <li class="quiz-option" data-correct="true">$x[5]$ and $y[4]$ (which itself depends on all previous samples)</li>
+    <li class="quiz-option" data-correct="false">$x[5]$ through $x[0]$ directly</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Direct Form II (or transposed Direct Form II) requires only max(M,N) delay elements by sharing the delay line between the feedforward and feedback paths. Direct Form I requires M + N delays.">
+  <h3>Q3. What is the advantage of Direct Form II over Direct Form I?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">It gives a different (better) frequency response</li>
+    <li class="quiz-option" data-correct="true">It uses fewer delay elements — max(M,N) instead of M+N</li>
+    <li class="quiz-option" data-correct="false">It is always more numerically stable</li>
+    <li class="quiz-option" data-correct="false">It eliminates the feedback path</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 5.3 Implementing Difference Equations
+
+fs = 1000;
+t  = 0:1/fs:1-1/fs;
+x  = sin(2*pi*50*t) + 0.5*randn(size(t));   % signal + noise
+
+%% Part A — Manual implementation vs filter()
+% 2nd-order Butterworth lowpass at 100 Hz
+[b, a] = butter(2, 100/(fs/2), 'low');
+fprintf('b coefficients: '); fprintf('%.5f ', b); fprintf('\n');
+fprintf('a coefficients: '); fprintf('%.5f ', a); fprintf('\n');
+
+% Manual loop (Direct Form I)
+N  = length(x);
+y_manual = zeros(1, N);
+for n = 1:N
+  y_manual(n) = b(1)*x(n);
+  if n >= 2; y_manual(n) = y_manual(n) + b(2)*x(n-1) - a(2)*y_manual(n-1); end
+  if n >= 3; y_manual(n) = y_manual(n) + b(3)*x(n-2) - a(3)*y_manual(n-2); end
+end
+
+% MATLAB built-in filter()
+y_builtin = filter(b, a, x);
+
+fprintf('Max difference (manual vs filter): %.2e\n', max(abs(y_manual - y_builtin)));
+
+figure('Name','Manual vs Built-in filter');
+plot(t(1:300), y_manual(1:300), 'b', 'DisplayName','Manual loop');
+hold on;
+plot(t(1:300), y_builtin(1:300), 'r--', 'DisplayName', 'filter()');
+xlabel('Time (s)'); title('Manual difference equation vs MATLAB filter()'); legend;
+
+%% Part B — Exponential smoothing (1st order IIR)
+alphas = [0.1, 0.5, 0.9, 0.99];
+figure('Name','Exponential Smoothing');
+for i = 1:4
+  alpha = alphas(i);
+  b_s = [1-alpha]; a_s = [1, -alpha];
+  y_s = filter(b_s, a_s, x);
+  subplot(2,2,i);
+  plot(t(1:500), x(1:500), 'Color',[0.7 0.7 0.7]); hold on;
+  plot(t(1:500), y_s(1:500), 'b', 'LineWidth', 1.5);
+  title(sprintf('α = %.2f', alpha)); xlabel('Time (s)'); ylim([-3 3]);
+end
+
+%% Part C — Step response (reveals transient behaviour)
+x_step = [zeros(1,50), ones(1,450)];  % step at n=50
+
+figure('Name','Step and Impulse Response');
+subplot(2,1,1);
+y_step = filter(b, a, x_step);
+stem(y_step(40:120), 'filled', 'MarkerSize', 3);
+title('Step response of 2nd-order Butterworth');
+xlabel('Sample'); xline(11,'r--','Step here');
+
+subplot(2,1,2);
+impz(b, a, 60);   % built-in impulse response
+title('Impulse response h[n]');
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>The max difference between manual and built-in should be machine precision (~1e-15) — they compute exactly the same thing. In Part B, small α (0.1) barely smooths; large α (0.99) produces very heavy smoothing with slow response. The step response in Part C shows overshoot because this is a 2nd-order system.</p>
+</details>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Difference equation: $y[n] = \sum b_k x[n-k] - \sum a_k y[n-k]$ — the implementation blueprint.</li>
+    <li>FIR: $a_k = 0$ (no feedback). IIR: nonzero $a_k$ (feedback from past outputs).</li>
+    <li>Direct Form I: straightforward, M+N delays. Direct Form II: efficient, max(M,N) delays.</li>
+    <li>In MATLAB: <code>filter(b, a, x)</code> for causal filtering; <code>impz(b, a)</code> for impulse response.</li>
+    <li>Manual loop implementation = same result as <code>filter()</code>, up to floating-point.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m5-filters/5.2-z-transform'); return false;">← 5.2 Z-Transform</a>
+  <a href="#" onclick="loadTopic('m5-filters/5.4-block-diagram'); return false;">Next: 5.4 Block Diagram →</a>
+</div>

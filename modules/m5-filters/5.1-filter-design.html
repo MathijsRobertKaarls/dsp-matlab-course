@@ -1,0 +1,231 @@
+<h1>5.1 — Filter Design &amp; Analysis</h1>
+<p class="topic-meta">Module 5 · Filter Design · ~25 min</p>
+
+<h2>Introduction</h2>
+<p>Filters are the workhorses of DSP. They selectively pass certain frequencies while attenuating others — removing noise, isolating a signal band, or shaping a spectrum. Understanding how to design, characterize, and choose filters is arguably the most practical skill in applied DSP.</p>
+
+<h2>Core Concept</h2>
+<h3>Filter Types by Frequency Response</h3>
+<ul>
+  <li><strong>Lowpass</strong>: passes low frequencies, attenuates high frequencies. Used for noise removal, anti-aliasing.</li>
+  <li><strong>Highpass</strong>: passes high frequencies, blocks low. Used for DC removal, edge detection.</li>
+  <li><strong>Bandpass</strong>: passes a band, attenuates outside. Used for extracting one channel.</li>
+  <li><strong>Bandstop (Notch)</strong>: rejects a narrow band. Classic use: remove 50/60 Hz power line hum.</li>
+</ul>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="9">
+    <!-- 4 filter type sketches -->
+    <!-- Lowpass -->
+    <text x="55" y="12" text-anchor="middle" fill="#8892b0">Lowpass</text>
+    <line x1="10" y1="100" x2="100" y2="100" stroke="#8892b0" stroke-width="1"/>
+    <line x1="10" y1="20" x2="10" y2="105" stroke="#8892b0" stroke-width="1"/>
+    <polyline points="10,22 45,22 55,100 100,100" stroke="#00e5ff" stroke-width="2.5" fill="none"/>
+
+    <!-- Highpass -->
+    <text x="175" y="12" text-anchor="middle" fill="#8892b0">Highpass</text>
+    <line x1="130" y1="100" x2="220" y2="100" stroke="#8892b0" stroke-width="1"/>
+    <line x1="130" y1="20" x2="130" y2="105" stroke="#8892b0" stroke-width="1"/>
+    <polyline points="130,100 165,100 175,22 220,22" stroke="#7c3aed" stroke-width="2.5" fill="none"/>
+
+    <!-- Bandpass -->
+    <text x="295" y="12" text-anchor="middle" fill="#8892b0">Bandpass</text>
+    <line x1="250" y1="100" x2="340" y2="100" stroke="#8892b0" stroke-width="1"/>
+    <line x1="250" y1="20" x2="250" y2="105" stroke="#8892b0" stroke-width="1"/>
+    <polyline points="250,100 270,100 278,22 315,22 323,100 340,100" stroke="#ffd740" stroke-width="2.5" fill="none"/>
+
+    <!-- Notch -->
+    <text x="415" y="12" text-anchor="middle" fill="#8892b0">Bandstop (Notch)</text>
+    <line x1="370" y1="100" x2="460" y2="100" stroke="#8892b0" stroke-width="1"/>
+    <line x1="370" y1="20" x2="370" y2="105" stroke="#8892b0" stroke-width="1"/>
+    <polyline points="370,22 398,22 404,100 426,100 432,22 460,22" stroke="#ff5252" stroke-width="2.5" fill="none"/>
+
+    <!-- Freq labels -->
+    <text x="55" y="115" text-anchor="middle" fill="#8892b0">Frequency →</text>
+    <text x="175" y="115" text-anchor="middle" fill="#8892b0">Frequency →</text>
+    <text x="295" y="115" text-anchor="middle" fill="#8892b0">Frequency →</text>
+    <text x="415" y="115" text-anchor="middle" fill="#8892b0">Frequency →</text>
+  </svg>
+  <figcaption>Ideal frequency responses of the four basic filter types. Real filters have transition bands (not perfectly sharp) and some passband ripple.</figcaption>
+</div>
+
+<h3>FIR vs IIR</h3>
+<p>Two fundamental filter architectures:</p>
+
+<table style="width:100%;border-collapse:collapse;font-size:0.88rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Property</th>
+    <th style="padding:0.4rem 0.6rem">FIR (Finite Impulse Response)</th>
+    <th style="padding:0.4rem 0.6rem">IIR (Infinite Impulse Response)</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.4rem 0.6rem">Feedback</td>
+    <td style="padding:0.4rem 0.6rem">No (feedforward only)</td>
+    <td style="padding:0.4rem 0.6rem">Yes (uses past outputs)</td>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.4rem 0.6rem">Stability</td>
+    <td style="padding:0.4rem 0.6rem">Always stable</td>
+    <td style="padding:0.4rem 0.6rem">Must check (poles inside unit circle)</td>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.4rem 0.6rem">Phase</td>
+    <td style="padding:0.4rem 0.6rem">Linear phase possible</td>
+    <td style="padding:0.4rem 0.6rem">Non-linear phase</td>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)">
+    <td style="padding:0.4rem 0.6rem">Efficiency</td>
+    <td style="padding:0.4rem 0.6rem">More coefficients needed</td>
+    <td style="padding:0.4rem 0.6rem">Fewer coefficients for steep rolloff</td>
+  </tr>
+  <tr>
+    <td style="padding:0.4rem 0.6rem">Use case</td>
+    <td style="padding:0.4rem 0.6rem">Audio, biomedical (phase-sensitive)</td>
+    <td style="padding:0.4rem 0.6rem">Real-time control, audio EQ, comms</td>
+  </tr>
+</table>
+
+<h3>Filter Specifications</h3>
+<ul>
+  <li><strong>Passband</strong>: frequencies that should pass (gain ≈ 1 or 0 dB)</li>
+  <li><strong>Stopband</strong>: frequencies to attenuate (gain ≪ 1, e.g. −60 dB)</li>
+  <li><strong>Transition band</strong>: the roll-off region between pass and stopband</li>
+  <li><strong>Ripple</strong>: variation in gain within the passband or stopband</li>
+</ul>
+
+<h2>Mathematical Foundation</h2>
+<p>FIR filter output (MA process):</p>
+
+$$y[n] = \sum_{k=0}^{M} b_k \, x[n-k]$$
+
+<p>IIR filter output (ARMA process):</p>
+
+$$y[n] = \sum_{k=0}^{M} b_k\, x[n-k] - \sum_{k=1}^{N} a_k\, y[n-k]$$
+
+<p>The frequency response (replace $z = e^{j\omega}$ in the Z-transform):</p>
+
+$$H(e^{j\omega}) = \frac{\sum_{k=0}^{M} b_k e^{-j\omega k}}{1 + \sum_{k=1}^{N} a_k e^{-j\omega k}}$$
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="FIR filters can achieve exactly linear phase because their impulse response is finite and symmetric. Linear phase means all frequencies are delayed by the same amount — no phase distortion, critical for audio and biomedical signals.">
+  <h3>Q1. Why are FIR filters preferred for audio and biomedical applications?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">They need fewer coefficients than IIR</li>
+    <li class="quiz-option" data-correct="true">They can achieve linear phase — all frequencies are delayed equally, preserving waveform shape</li>
+    <li class="quiz-option" data-correct="false">They have steeper roll-off for the same order</li>
+    <li class="quiz-option" data-correct="false">They are always faster to compute</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="A notch (bandstop) filter is specifically designed to attenuate a narrow frequency band. 50/60 Hz power line interference is a classic application — you want to kill just that frequency while leaving everything else intact.">
+  <h3>Q2. To remove 50 Hz power line interference from an ECG recording, you would use a:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Lowpass filter with cutoff 50 Hz</li>
+    <li class="quiz-option" data-correct="false">Highpass filter with cutoff 50 Hz</li>
+    <li class="quiz-option" data-correct="true">Notch (bandstop) filter centered at 50 Hz</li>
+    <li class="quiz-option" data-correct="false">Bandpass filter passing 40–60 Hz</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="IIR filters use feedback (past output values) in their difference equation. This makes them potentially unstable but allows sharp frequency responses with fewer coefficients than FIR.">
+  <h3>Q3. IIR filters can be unstable because they:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Have too many coefficients</li>
+    <li class="quiz-option" data-correct="true">Use feedback (past outputs), which can cause unbounded growth if poles are outside the unit circle</li>
+    <li class="quiz-option" data-correct="false">Always introduce nonlinear phase</li>
+    <li class="quiz-option" data-correct="false">Cannot be designed with standard methods</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 5.1 Filter Design and Analysis
+
+fs = 1000;   % Sampling frequency
+Fc = 100;    % Cutoff frequency (Hz)
+Fn = Fc/(fs/2);  % Normalized cutoff [0,1]
+
+%% --- FIR filter (window method) ---
+N_fir = 64;          % Filter order
+b_fir = fir1(N_fir, Fn, 'low', hann(N_fir+1));  % Lowpass FIR
+
+%% --- IIR Butterworth filter ---
+[b_iir, a_iir] = butter(4, Fn, 'low');           % 4th-order Butterworth
+
+%% --- Compare frequency responses ---
+figure('Name','Filter Frequency Response');
+[H_fir, f] = freqz(b_fir, 1, 1024, fs);
+[H_iir, ~] = freqz(b_iir, a_iir, 1024, fs);
+
+subplot(2,1,1);
+plot(f, 20*log10(abs(H_fir)), 'b', 'DisplayName', sprintf('FIR order %d', N_fir)); hold on;
+plot(f, 20*log10(abs(H_iir)), 'r', 'DisplayName', 'IIR Butterworth order 4');
+xline(Fc, 'k--', 'fc=100Hz');
+xlabel('Frequency (Hz)'); ylabel('Magnitude (dB)');
+title('Lowpass: FIR vs IIR'); legend; ylim([-80 5]); grid on;
+
+subplot(2,1,2);
+plot(f, unwrap(angle(H_fir))*180/pi, 'b'); hold on;
+plot(f, unwrap(angle(H_iir))*180/pi, 'r');
+xlabel('Frequency (Hz)'); ylabel('Phase (degrees)');
+title('Phase response — note FIR is linear, IIR is not'); legend('FIR','IIR'); xlim([0 fs/2]);
+
+%% --- Apply filter to a noisy signal ---
+t = 0:1/fs:2-1/fs;
+x_clean = sin(2*pi*30*t);
+x_noisy = x_clean + 0.6*randn(size(t)) + 0.4*sin(2*pi*300*t);
+
+y_fir    = filter(b_fir, 1, x_noisy);
+y_iir    = filter(b_iir, a_iir, x_noisy);
+y_filtfilt = filtfilt(b_iir, a_iir, x_noisy);   % Zero-phase filtering
+
+figure('Name','Filter Applied');
+subplot(4,1,1); plot(t(1:500), x_noisy(1:500));  title('Noisy input'); ylim([-3 3]);
+subplot(4,1,2); plot(t(1:500), y_fir(1:500));    title('FIR (linear phase — shifted)'); ylim([-2 2]);
+subplot(4,1,3); plot(t(1:500), y_iir(1:500));    title('IIR filter() — causal, phase distortion'); ylim([-2 2]);
+subplot(4,1,4); plot(t(1:500), y_filtfilt(1:500)); hold on;
+plot(t(1:500), x_clean(1:500), 'r--');
+title('IIR filtfilt() — zero-phase (offline only)'); ylim([-2 2]); legend('Filtered','True');
+
+%% --- Design other filter types ---
+% Highpass FIR
+b_hp = fir1(64, 0.3, 'high', hann(65));
+% Bandpass IIR
+[b_bp, a_bp] = butter(3, [0.1 0.4], 'bandpass');
+% Notch (50 Hz in 1000 Hz system)
+Wo = 50/(fs/2);  BW = Wo/35;
+[b_notch, a_notch] = iirnotch(Wo, BW);
+
+figure('Name','Filter Types');
+types = {b_fir,1; b_hp,1; b_bp,a_bp; b_notch,a_notch};
+titles = {'Lowpass FIR','Highpass FIR','Bandpass IIR','Notch IIR (50Hz)'};
+for i=1:4
+  subplot(2,2,i);
+  freqz(types{i,1}, types{i,2}, 1024, fs);
+  title(titles{i});
+end
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>Note the key difference in the phase plot: FIR phase is a straight line (linear phase = constant group delay). IIR phase curves — different frequencies are delayed by different amounts, distorting the waveform shape. <code>filtfilt()</code> applies the filter twice (forward then backward) to achieve zero-phase — but this requires the complete signal (not real-time).</p>
+</details>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Filters classified by response: lowpass, highpass, bandpass, bandstop.</li>
+    <li><strong>FIR</strong>: stable, linear phase possible, needs more coefficients. Design with <code>fir1()</code>.</li>
+    <li><strong>IIR</strong>: efficient, non-linear phase, feedback (can be unstable). Design with <code>butter()</code>, <code>cheby1()</code>.</li>
+    <li>Apply with <code>filter()</code> (causal/real-time) or <code>filtfilt()</code> (zero-phase, offline).</li>
+    <li>Visualize with <code>freqz(b, a, N, fs)</code>.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m4-time-frequency/4.2-wavelets'); return false;">← 4.2 Wavelets</a>
+  <a href="#" onclick="loadTopic('m5-filters/5.2-z-transform'); return false;">Next: 5.2 Z-Transform →</a>
+</div>

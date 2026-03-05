@@ -1,0 +1,176 @@
+<h1>3.2 — Zero-Padding</h1>
+<p class="topic-meta">Module 3 · Signal Quality · ~15 min</p>
+
+<h2>Introduction</h2>
+<p>What if you could make your frequency plot look smoother and more detailed without collecting more data? That's what <strong>zero-padding</strong> offers — but there's an important catch. Zero-padding gives you a finer-looking spectrum, but it doesn't reveal frequencies that weren't there to begin with. Understanding this distinction prevents a very common mistake in DSP.</p>
+
+<h2>Core Concept</h2>
+<h3>What is Zero-Padding?</h3>
+<p>Zero-padding means appending zeros to your signal before computing the DFT:</p>
+
+$$x_{ZP}[n] = \begin{cases} x[n] & 0 \leq n \leq N-1 \\ 0 & N \leq n \leq M-1 \end{cases}$$
+
+<p>where $M > N$ (usually $M = 2^k$ for FFT efficiency). The DFT of $x_{ZP}$ has $M$ bins instead of $N$, giving a finer frequency axis spacing of $\Delta f = f_s / M$.</p>
+
+<h3>The Key Distinction</h3>
+<div class="callout warning">
+  <strong>⚠ Zero-padding ≠ better frequency resolution.</strong><br>
+  <strong>Frequency resolution</strong> (the ability to distinguish two closely spaced peaks) is determined by the <em>signal duration</em>: $\Delta f_{true} = f_s/N$. Zero-padding only provides <strong>interpolation</strong> between existing DFT bins — a smoother-looking spectrum, not a more informative one.
+</div>
+
+<p>Think of it like zooming into a photo. Zooming in (zero-padding) makes the picture larger but doesn't add new detail if the original was low-resolution. To see more detail you need a higher-resolution photo (longer signal).</p>
+
+<h3>When is Zero-Padding Useful?</h3>
+<ul>
+  <li><strong>Peak location accuracy</strong> — if a frequency falls between DFT bins, zero-padding helps interpolate to find the true peak location more precisely.</li>
+  <li><strong>Visualization</strong> — a smoother spectrum is easier to read and looks better in reports.</li>
+  <li><strong>FFT efficiency</strong> — padding to the next power of 2 can speed up computation.</li>
+  <li><strong>Circular convolution</strong> — padding prevents time-domain aliasing in block-wise convolution.</li>
+</ul>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 180" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="10">
+    <!-- N=32 FFT (coarse) -->
+    <text x="120" y="14" text-anchor="middle" fill="#8892b0">N=32 (no padding)</text>
+    <line x1="10" y1="150" x2="230" y2="150" stroke="#8892b0" stroke-width="1"/>
+    <line x1="10" y1="20" x2="10" y2="155" stroke="#8892b0" stroke-width="1"/>
+    <!-- Coarse bars -->
+    <rect x="50"  y="50"  width="8" height="100" fill="#7c3aed" opacity="0.8"/>
+    <rect x="70"  y="110" width="8" height="40"  fill="#7c3aed" opacity="0.8"/>
+    <rect x="90"  y="130" width="8" height="20"  fill="#7c3aed" opacity="0.8"/>
+    <rect x="110" y="90"  width="8" height="60"  fill="#7c3aed" opacity="0.8"/>
+    <rect x="130" y="140" width="8" height="10"  fill="#7c3aed" opacity="0.8"/>
+    <rect x="150" y="120" width="8" height="30"  fill="#7c3aed" opacity="0.8"/>
+    <rect x="170" y="145" width="8" height="5"   fill="#7c3aed" opacity="0.8"/>
+    <rect x="190" y="135" width="8" height="15"  fill="#7c3aed" opacity="0.8"/>
+
+    <!-- Zero-padded FFT (fine) -->
+    <text x="390" y="14" text-anchor="middle" fill="#8892b0">Zero-padded to M=256</text>
+    <line x1="270" y1="150" x2="510" y2="150" stroke="#8892b0" stroke-width="1"/>
+    <line x1="270" y1="20" x2="270" y2="155" stroke="#8892b0" stroke-width="1"/>
+    <!-- Smooth interpolated peak -->
+    <path d="M270,150 C290,149 305,148 315,145 C325,140 335,120 345,85 C350,65 355,52 360,50 C365,52 370,65 375,85 C385,120 395,140 405,145 C415,148 430,149 450,150 C470,150 490,150 510,150"
+      stroke="#00e5ff" stroke-width="2.5" fill="none"/>
+    <!-- Fill under curve -->
+    <path d="M270,150 C290,149 305,148 315,145 C325,140 335,120 345,85 C350,65 355,52 360,50 C365,52 370,65 375,85 C385,120 395,140 405,145 C415,148 430,149 450,150 C470,150 490,150 510,150 Z"
+      fill="#00e5ff" opacity="0.1"/>
+
+    <text x="120" y="170" text-anchor="middle" fill="#7c3aed" font-size="9">Δf = fs/32 (coarse bins)</text>
+    <text x="390" y="170" text-anchor="middle" fill="#00e5ff" font-size="9">Δf = fs/256 (smooth — same data)</text>
+  </svg>
+  <figcaption>Both plots show the same underlying signal. Zero-padding interpolates between DFT bins for a smoother curve — the peak location and height are more accurately read, but no new frequencies are revealed.</figcaption>
+</div>
+
+<h2>Mathematical Foundation</h2>
+<p>Zero-padding in the time domain corresponds to <strong>interpolation</strong> in the frequency domain. The $M$-point DFT of $x_{ZP}$ evaluates the DTFT at $M$ equally-spaced points instead of $N$:</p>
+
+$$X_{ZP}[k] = X(e^{j\hat\omega})\bigg|_{\hat\omega = 2\pi k/M}$$
+
+<p>Since DTFT is continuous and the $N$-point DFT evaluates it at $N$ points, zero-padding simply evaluates more points — it does not change the underlying DTFT shape.</p>
+
+<p>True frequency resolution (Rayleigh criterion — minimum separation to distinguish two peaks):</p>
+
+$$\Delta f_{resolution} = \frac{f_s}{N} = \frac{1}{T_{record}}$$
+
+<p>Only collecting more samples ($N \uparrow$) or recording longer ($T_{record} \uparrow$) improves this.</p>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="Zero-padding evaluates the DTFT at more frequency points — it's interpolation, not improved resolution. True resolution (ability to separate two close peaks) only improves with more actual signal samples.">
+  <h3>Q1. A signal is recorded for 0.1 s at 1000 Hz (N=100 samples). You zero-pad to N=1024. What is the true frequency resolution?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">~1 Hz (1000/1024)</li>
+    <li class="quiz-option" data-correct="true">10 Hz (1000/100) — zero-padding doesn't improve true resolution</li>
+    <li class="quiz-option" data-correct="false">0.1 Hz</li>
+    <li class="quiz-option" data-correct="false">1000 Hz</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="When a signal frequency falls between DFT bins, zero-padding interpolates around the peak, allowing more accurate estimation of where the true peak is — even though it doesn't add resolution.">
+  <h3>Q2. Zero-padding is most useful for:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Resolving two closely spaced frequencies</li>
+    <li class="quiz-option" data-correct="true">More accurately locating the frequency of a single spectral peak between DFT bins</li>
+    <li class="quiz-option" data-correct="false">Reducing spectral leakage</li>
+    <li class="quiz-option" data-correct="false">Reducing noise in the time domain</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Appending zeros does not change the signal content — they are zero, so they carry no new information. The DTFT of the original N samples is unchanged; we're just evaluating it at more points.">
+  <h3>Q3. Why does zero-padding NOT improve true frequency resolution?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Because zeros are filtered out by the FFT</li>
+    <li class="quiz-option" data-correct="true">Because the appended zeros contain no new signal information — we're only interpolating an existing DTFT</li>
+    <li class="quiz-option" data-correct="false">Because it changes the sampling frequency</li>
+    <li class="quiz-option" data-correct="false">Because it introduces aliasing</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 3.2 Zero-Padding: Interpolation vs Resolution
+
+fs = 1000;
+N  = 64;       % Short signal — coarse true resolution
+t  = (0:N-1)/fs;
+
+% Two close frequencies: can we tell them apart?
+f1 = 100;  f2 = 115;   % separation = 15 Hz; true resolution = 1000/64 ≈ 15.6 Hz
+x = sin(2*pi*f1*t) + sin(2*pi*f2*t);
+
+% Different padding lengths
+pad_sizes = [N, 256, 1024, 4096];
+colors = {'b','r','g','m'};
+
+figure('Name','Zero-Padding Effect');
+for i = 1:4
+  M = pad_sizes(i);
+  xp = [x, zeros(1, M-N)];      % zero-pad
+  Xp = fft(xp);
+  f_ax = (0:M/2-1)*fs/M;
+  plot(f_ax, abs(Xp(1:M/2))*2/M, colors{i}, 'DisplayName', sprintf('M=%d', M));
+  hold on;
+end
+xline(f1,'k--'); xline(f2,'k--');
+xlabel('Frequency (Hz)'); ylabel('|X(f)|');
+title(sprintf('N=%d samples, f1=%dHz, f2=%dHz (sep=%.0f Hz, resolution=%.1f Hz)', N, f1, f2, f2-f1, fs/N));
+legend; xlim([60 160]);
+
+% Now show that LONGER recording actually resolves the two peaks
+figure('Name','True Resolution: Longer Signal');
+for N2 = [32, 64, 128, 256]
+  t2 = (0:N2-1)/fs;
+  x2 = sin(2*pi*f1*t2) + sin(2*pi*f2*t2);
+  X2 = fft(x2, 4096);    % same zero-padding for all, only signal length differs
+  f2_ax = (0:2047)*fs/4096;
+  plot(f2_ax, abs(X2(1:2048))*2/N2, 'DisplayName', sprintf('N=%d (Δf=%.1f Hz)', N2, fs/N2));
+  hold on;
+end
+xline(f1,'k--'); xline(f2,'k--');
+xlabel('Frequency (Hz)'); ylabel('|X(f)|');
+title('Resolving two peaks: only longer recording helps (all zero-padded to 4096)');
+legend; xlim([60 160]);
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>In the first figure, all curves use the same N=64 samples with increasing zero-padding. The curves get smoother, but the two peaks only become distinguishable when N is large enough (true resolution ≤ frequency separation). In the second figure, even with the same zero-padding, a longer signal (larger N) reveals two distinct peaks.</p>
+</details>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Zero-padding appends zeros, increasing the DFT size from $N$ to $M > N$.</li>
+    <li>Result: smoother, interpolated spectrum — useful for peak localization and visualization.</li>
+    <li>True frequency resolution $\Delta f = f_s/N$ depends only on signal length, NOT padding.</li>
+    <li>To distinguish two close frequencies, you need more <em>signal samples</em>, not more zeros.</li>
+    <li>In MATLAB: <code>fft(x, M)</code> automatically zero-pads to length M.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m3-quality/3.1-snr'); return false;">← 3.1 SNR</a>
+  <a href="#" onclick="loadTopic('m3-quality/3.3-windowing'); return false;">Next: 3.3 Windowing →</a>
+</div>

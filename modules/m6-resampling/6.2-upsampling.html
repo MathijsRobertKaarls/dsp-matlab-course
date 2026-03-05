@@ -1,0 +1,179 @@
+<h1>6.2 — Upsampling</h1>
+<p class="topic-meta">Module 6 · Resampling · ~15 min</p>
+
+<h2>Introduction</h2>
+<p>Upsampling increases the number of samples — you go from a lower to a higher sampling rate. The challenge: the new samples don't exist yet. Naively inserting zeros between samples creates an ugly, distorted-looking signal. Upsampling done correctly requires inserting zeros and then smoothing with an interpolation (lowpass) filter.</p>
+
+<h2>Core Concept</h2>
+<h3>The Upsampling Process</h3>
+<p>Upsampling by integer factor $L$:</p>
+<ol>
+  <li><strong>Zero-insert</strong>: insert $L-1$ zeros between each original sample.</li>
+  <li><strong>Lowpass filter</strong> (interpolation filter): cutoff at $f_s/(2L)$, gain $L$ to restore amplitude.</li>
+</ol>
+
+$$x_L[n] = \begin{cases} x[n/L] & n = 0, L, 2L, \ldots \\ 0 & \text{otherwise} \end{cases}$$
+
+<h3>Spectral Effect of Zero-Insertion</h3>
+<p>Inserting zeros creates <strong>spectral images</strong> — copies of the original spectrum repeated at multiples of the original Nyquist frequency. The lowpass interpolation filter removes these images, leaving only the baseband signal at the higher rate.</p>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 180" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="9">
+    <!-- Original spectrum -->
+    <text x="80" y="12" text-anchor="middle" fill="#8892b0">Original spectrum (fs)</text>
+    <line x1="10" y1="60" x2="150" y2="60" stroke="#8892b0" stroke-width="1"/>
+    <line x1="10" y1="15" x2="10" y2="65" stroke="#8892b0" stroke-width="1"/>
+    <path d="M10,60 C25,55 35,20 50,20 C65,20 75,55 90,60" stroke="#00e5ff" stroke-width="2" fill="none"/>
+    <text x="80" y="70" fill="#ffd740" text-anchor="middle" font-size="8">fs/2</text>
+    <line x1="80" y1="60" x2="80" y2="15" stroke="#ffd740" stroke-width="0.8" stroke-dasharray="3,2"/>
+
+    <!-- After zero-stuffing -->
+    <text x="280" y="12" text-anchor="middle" fill="#8892b0">After ×2 zero-stuffing (images!)</text>
+    <line x1="160" y1="60" x2="400" y2="60" stroke="#8892b0" stroke-width="1"/>
+    <line x1="160" y1="15" x2="160" y2="65" stroke="#8892b0" stroke-width="1"/>
+    <!-- baseband copy -->
+    <path d="M160,60 C175,55 185,20 200,20 C215,20 225,55 240,60" stroke="#00e5ff" stroke-width="2" fill="none"/>
+    <!-- image copy -->
+    <path d="M240,60 C255,55 265,20 280,20 C295,20 305,55 320,60" stroke="#ff5252" stroke-width="2" fill="none" stroke-dasharray="4,2"/>
+    <path d="M320,60 C335,55 345,20 360,20 C375,20 385,55 400,60" stroke="#ff5252" stroke-width="2" fill="none" stroke-dasharray="4,2"/>
+    <text x="200" y="70" fill="#ffd740" text-anchor="middle" font-size="8">fs/2</text>
+    <text x="280" y="70" fill="#ffd740" text-anchor="middle" font-size="8">fs</text>
+    <line x1="200" y1="60" x2="200" y2="15" stroke="#ffd740" stroke-width="0.8" stroke-dasharray="3,2"/>
+    <line x1="280" y1="60" x2="280" y2="15" stroke="#ffd740" stroke-width="0.8" stroke-dasharray="3,2"/>
+    <text x="360" y="40" fill="#ff5252" font-size="8">images</text>
+
+    <!-- After LPF -->
+    <text x="460" y="12" text-anchor="middle" fill="#8892b0">After LPF</text>
+    <line x1="410" y1="60" x2="510" y2="60" stroke="#8892b0" stroke-width="1"/>
+    <line x1="410" y1="15" x2="410" y2="65" stroke="#8892b0" stroke-width="1"/>
+    <path d="M410,60 C425,55 435,20 450,20 C465,20 475,55 490,60" stroke="#00e5ff" stroke-width="2" fill="none"/>
+    <!-- LPF cutoff -->
+    <line x1="490" y1="60" x2="510" y2="60" stroke="#8892b0" stroke-width="1"/>
+    <text x="460" y="70" fill="#00c853" text-anchor="middle" font-size="8">images removed</text>
+  </svg>
+  <figcaption>After ×2 zero-stuffing: spectral images appear (red dashed). The lowpass interpolation filter removes them, leaving only the clean baseband signal.</figcaption>
+</div>
+
+<h2>Mathematical Foundation</h2>
+<p>The DTFT of the zero-inserted signal $x_L[n]$:</p>
+
+$$X_L(e^{j\hat\omega}) = X(e^{j\hat\omega L})$$
+
+<p>This is the original spectrum <em>compressed</em> by factor $L$ in digital frequency — equivalently, spectral images appear at $\hat\omega = 2\pi k/L$ for $k = 1, 2, \ldots, L-1$. The interpolation filter $H(e^{j\hat\omega})$ removes everything above $\pi/L$:</p>
+
+$$H_{interp}(\hat\omega) = \begin{cases} L & |\hat\omega| \leq \pi/L \\ 0 & \text{otherwise} \end{cases}$$
+
+<p>The gain $L$ compensates for the energy reduction caused by inserting zeros.</p>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="Upsampling by L inserts L-1 zeros between each sample. After this zero insertion, spectral images appear — copies of the original baseband spectrum at multiples of the original Nyquist. A lowpass filter removes these images.">
+  <h3>Q1. After zero-insertion (upsampling by L=4 without filtering), the spectrum contains:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">The original spectrum stretched by a factor of 4</li>
+    <li class="quiz-option" data-correct="true">The original baseband spectrum plus 3 spectral images at higher frequencies</li>
+    <li class="quiz-option" data-correct="false">A completely flat (white) spectrum</li>
+    <li class="quiz-option" data-correct="false">The original spectrum compressed by 4</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="The interpolation (lowpass) filter after upsampling must have gain L to restore the correct amplitude, because inserting L-1 zeros dilutes the signal energy by L.">
+  <h3>Q2. The interpolation lowpass filter after zero-insertion must have a gain of $L$ (not 1) because:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">It needs to compensate for the filter's passband ripple</li>
+    <li class="quiz-option" data-correct="true">Inserting $L-1$ zeros dilutes the signal energy; gain $L$ restores the correct amplitude</li>
+    <li class="quiz-option" data-correct="false">The cutoff frequency changes by L</li>
+    <li class="quiz-option" data-correct="false">It prevents the signal from being aliased</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="The interpolation filter cutoff is at the original signal's Nyquist = fs/(2L) in the upsampled domain. Above this, all content is spectral images that must be removed.">
+  <h3>Q3. For upsampling by $L=3$ at original rate $f_s$, the interpolation filter cutoff is:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">$f_s / 2$ (original Nyquist)</li>
+    <li class="quiz-option" data-correct="true">$f_s / 6$ (= original Nyquist divided by $L$)</li>
+    <li class="quiz-option" data-correct="false">$3 f_s / 2$</li>
+    <li class="quiz-option" data-correct="false">$f_s$</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 6.2 Upsampling: Zero Insertion + Interpolation Filter
+
+fs = 1000;
+L  = 4;      % Upsample factor
+T  = 0.5;
+t  = (0:1/fs:T-1/fs);
+
+f0 = 100;
+x  = sin(2*pi*f0*t) + 0.5*sin(2*pi*3*f0*t);
+
+%% Step 1: Zero insertion (no filtering)
+x_up_raw = upsample(x, L);   % inserts L-1 zeros between samples
+fs_up    = fs * L;
+t_up     = (0:length(x_up_raw)-1) / fs_up;
+
+%% Step 2: Apply interpolation filter
+% Lowpass at fs/(2L), gain = L
+b_interp = L * fir1(64, 1/L);   % normalized cutoff = 1/L
+x_up_filtered = filter(b_interp, 1, x_up_raw);
+
+%% Plot time domain
+figure('Name','Upsampling');
+subplot(3,1,1);
+stem(t(1:60), x(1:60), 'filled', 'MarkerSize',4);
+title(sprintf('Original signal: fs=%d Hz', fs)); xlabel('Time (s)');
+
+subplot(3,1,2);
+stem(t_up(1:240), x_up_raw(1:240), 'filled', 'MarkerSize',2);
+title(sprintf('After zero insertion (L=%d): fs=%d Hz — zeros visible', L, fs_up));
+xlabel('Time (s)');
+
+subplot(3,1,3);
+plot(t_up(1:240), x_up_filtered(33:33+239));  % remove filter delay
+title(sprintf('After interpolation filter: smooth at %d Hz', fs_up));
+xlabel('Time (s)');
+
+%% Spectral comparison
+N = length(x);  Nu = length(x_up_raw);
+figure('Name','Upsampling Spectra');
+f_orig = (0:N/2-1)*fs/N;
+f_up   = (0:Nu/2-1)*fs_up/Nu;
+
+subplot(3,1,1);
+plot(f_orig, abs(fft(x))*2/N);
+title('Original spectrum'); xlabel('Hz'); xlim([0 600]);
+
+subplot(3,1,2);
+plot(f_up, abs(fft(x_up_raw))*2/Nu);
+title('After zero insertion: images visible at multiples of fs/2'); xlabel('Hz'); xlim([0 2000]);
+for k = 1:L; xline(fs/2*k, 'r--'); end
+
+subplot(3,1,3);
+plot(f_up, abs(fft(x_up_filtered))*2/Nu*L);
+title('After interpolation filter: images removed'); xlabel('Hz'); xlim([0 2000]);
+xline(fs/2, 'g--', 'original Nyquist');
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>The middle spectrum plot will show the original 100 Hz and 300 Hz peaks, PLUS their images at 900/700 Hz, 1900/1700 Hz etc. (images at fs-f and 2fs-f etc.). The bottom plot shows them removed. Note: <code>upsample(x, L)</code> in MATLAB inserts zeros; this is equivalent to zero-stuffing.</p>
+</details>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Upsampling by $L$: insert $L-1$ zeros, then apply lowpass interpolation filter (gain $L$, cutoff $\pi/L$).</li>
+    <li>Zero-insertion creates spectral images — copies of the original spectrum that must be filtered out.</li>
+    <li>In MATLAB: <code>upsample(x, L)</code> for zero-insertion; follow with <code>filter()</code> for interpolation.</li>
+    <li>Or use <code>resample(x, L, 1)</code> which does both steps in one call.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m6-resampling/6.1-overview'); return false;">← 6.1 Overview</a>
+  <a href="#" onclick="loadTopic('m6-resampling/6.3-downsampling'); return false;">Next: 6.3 Downsampling →</a>
+</div>

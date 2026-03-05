@@ -1,0 +1,210 @@
+<h1>2.2 — Aliasing (Spectral Foldback)</h1>
+<p class="topic-meta">Module 2 · Frequency Domain · ~20 min</p>
+
+<h2>Introduction</h2>
+<p>You've seen a movie where a spinning wheel appears to rotate backward, or even stand still. This is an optical aliasing effect — the camera samples the wheel too slowly to capture its true rotation speed. The same phenomenon occurs in digital signal processing: sample a signal too slowly, and high-frequency components appear to "fold back" into the lower frequency range — completely disguised as lower frequencies.</p>
+<p>This is <strong>aliasing</strong>, and it's a critical failure mode in DSP systems. Once it happens, the aliased frequencies are <em>indistinguishable</em> from legitimate ones — you cannot undo aliasing after the fact.</p>
+
+<div class="callout warning">
+  <strong>⚠ Aliasing is irreversible.</strong> Once a signal has been aliased, you cannot recover the original high-frequency content. Prevention (sampling fast enough, or using an anti-aliasing filter) is the only solution.
+</div>
+
+<!-- ===== CORE CONCEPT ===== -->
+<h2>Core Concept</h2>
+
+<h3>When Aliasing Occurs</h3>
+<p>Aliasing occurs whenever a signal contains frequencies <em>at or above</em> half the sampling frequency:</p>
+
+$$f_{signal} \geq \frac{f_s}{2} \quad \Rightarrow \quad \text{aliasing!}$$
+
+<p>The Nyquist frequency $f_N = f_s/2$ is the maximum representable frequency.</p>
+
+<h3>Spectral Foldback</h3>
+<p>When a frequency $f$ exceeds $f_s/2$, it "folds back" and appears at the alias frequency:</p>
+
+$$f_{alias} = |f - k \cdot f_s|, \quad \text{where } k \text{ is chosen so that } f_{alias} \in [0, f_s/2]$$
+
+<p>For the simplest case of one alias:</p>
+
+$$f_{alias} = f_s - f \quad \text{(when } f_s/2 < f < f_s \text{)}$$
+
+<div class="callout">
+  <strong>Example:</strong> $f_s = 1000$ Hz, signal frequency $f = 750$ Hz. The alias appears at $f_{alias} = 1000 - 750 = 250$ Hz. In your recording, a 750 Hz tone sounds like a 250 Hz tone!
+</div>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 210" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="10">
+    <!-- Axes -->
+    <line x1="30" y1="20" x2="30" y2="180" stroke="#8892b0" stroke-width="1"/>
+    <line x1="30" y1="180" x2="500" y2="180" stroke="#8892b0" stroke-width="1"/>
+    <text x="30" y="196" text-anchor="middle" fill="#8892b0">0</text>
+    <text x="265" y="196" text-anchor="middle" fill="#ffd740">fs/2 (Nyquist)</text>
+    <text x="500" y="196" text-anchor="middle" fill="#8892b0">fs</text>
+
+    <!-- Nyquist line -->
+    <line x1="265" y1="20" x2="265" y2="180" stroke="#ffd740" stroke-width="1" stroke-dasharray="4,3"/>
+
+    <!-- Original frequency (above Nyquist) -->
+    <line x1="400" y1="180" x2="400" y2="60" stroke="#ff5252" stroke-width="3"/>
+    <circle cx="400" cy="60" r="5" fill="#ff5252"/>
+    <text x="400" y="50" text-anchor="middle" fill="#ff5252">f = 750 Hz</text>
+    <text x="400" y="40" text-anchor="middle" fill="#ff5252">(above Nyquist)</text>
+
+    <!-- Alias -->
+    <line x1="130" y1="180" x2="130" y2="60" stroke="#7c3aed" stroke-width="3" stroke-dasharray="5,3"/>
+    <circle cx="130" cy="60" r="5" fill="#7c3aed"/>
+    <text x="130" y="50" text-anchor="middle" fill="#7c3aed">alias at 250 Hz</text>
+
+    <!-- Fold arrow -->
+    <path d="M400,75 Q265,30 130,75" stroke="#ffd740" stroke-width="1.5" fill="none"
+      marker-end="url(#arrAlias)"/>
+    <text x="265" y="28" text-anchor="middle" fill="#ffd740" font-size="9">folds back</text>
+
+    <defs>
+      <marker id="arrAlias" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#ffd740"/>
+      </marker>
+    </defs>
+
+    <!-- Label -->
+    <text x="265" y="210" text-anchor="middle" fill="#8892b0">fs = 1000 Hz → Nyquist = 500 Hz</text>
+  </svg>
+  <figcaption>Spectral foldback: a 750 Hz signal (above Nyquist at 500 Hz) folds back and appears at 250 Hz in the sampled spectrum.</figcaption>
+</div>
+
+<h3>Anti-Aliasing Filter</h3>
+<p>The standard solution is to place a <strong>lowpass filter</strong> (the anti-aliasing filter) <em>before</em> the ADC. This filter removes all signal content above $f_s/2$ before sampling, preventing the fold-back.</p>
+
+$$x_{filtered}(t) = x(t) * h_{LP}(t) \quad \text{where } h_{LP} \text{ cuts off at } f_s/2$$
+
+<!-- ===== MATH ===== -->
+<h2>Mathematical Foundation</h2>
+
+<h3>Spectrum of a sampled signal</h3>
+<p>Sampling multiplies the signal by an impulse train. In the frequency domain, this creates periodic copies of the spectrum spaced $f_s$ apart:</p>
+
+$$X_s(f) = f_s \sum_{k=-\infty}^{\infty} X(f - k f_s)$$
+
+<p>If the original spectrum $X(f)$ is bandlimited to $[-f_s/2, f_s/2]$, the copies don't overlap and the original can be perfectly recovered. If not, the copies overlap — that overlap is <strong>aliasing</strong>.</p>
+
+<!-- ===== QUIZ ===== -->
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="With fs = 8000 Hz, the Nyquist frequency is 4000 Hz. A 5000 Hz tone is above Nyquist. The alias appears at fs - f = 8000 - 5000 = 3000 Hz.">
+  <h3>Q1. Audio is sampled at $f_s = 8000$ Hz. A 5000 Hz tone is present in the input. At what frequency does the alias appear?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">5000 Hz</li>
+    <li class="quiz-option" data-correct="false">4000 Hz</li>
+    <li class="quiz-option" data-correct="true">3000 Hz</li>
+    <li class="quiz-option" data-correct="false">1000 Hz</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="An anti-aliasing filter (lowpass filter) placed BEFORE the ADC removes signal content above fs/2 before sampling. This prevents aliasing from occurring in the first place.">
+  <h3>Q2. The standard way to prevent aliasing is to:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Apply a highpass filter after the ADC</li>
+    <li class="quiz-option" data-correct="true">Apply a lowpass filter before the ADC, cutting off at $f_s/2$</li>
+    <li class="quiz-option" data-correct="false">Sample the signal twice and average the results</li>
+    <li class="quiz-option" data-correct="false">Use more bits in the quantizer</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Once aliasing has occurred, the alias frequency is indistinguishable from a legitimate signal at that frequency. The original information is permanently lost — aliasing cannot be undone.">
+  <h3>Q3. Can you undo aliasing after a signal has been digitized at too low a sampling rate?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Yes, with a highpass filter</li>
+    <li class="quiz-option" data-correct="false">Yes, by resampling at a higher rate</li>
+    <li class="quiz-option" data-correct="true">No — aliased frequencies are permanently merged with legitimate ones</li>
+    <li class="quiz-option" data-correct="false">Yes, using the inverse FFT</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<!-- ===== MATLAB ===== -->
+<h2>MATLAB Exercise</h2>
+<p>Observe aliasing by deliberately undersampling a tone and examining the FFT.</p>
+
+<pre><code class="language-matlab">%% 2.2 Aliasing Demonstration
+
+fs_true = 10000;   % High-rate "true" continuous signal
+fs_low  = 1000;    % Undersampled rate (Nyquist = 500 Hz)
+T = 0.5;
+
+t_true = 0:1/fs_true:T;
+t_low  = 0:1/fs_low:T;
+
+f_signal = 750;    % ABOVE Nyquist (500 Hz) — will alias to 250 Hz
+
+x_true = sin(2*pi*f_signal*t_true);
+x_low  = sin(2*pi*f_signal*t_low);   % Undersampled version
+
+%% Compare FFTs
+N_true = length(x_true);
+N_low  = length(x_low);
+
+f_ax_true = (0:N_true-1)*fs_true/N_true;
+f_ax_low  = (0:N_low-1)*fs_low/N_low;
+
+figure('Name','Aliasing Demonstration');
+subplot(2,2,1);
+plot(t_true(1:200), x_true(1:200)); title('True 750 Hz signal');
+xlabel('Time (s)'); ylim([-1.5 1.5]);
+
+subplot(2,2,2);
+stem(t_low(1:50), x_low(1:50), 'filled'); title(sprintf('Sampled at %d Hz (sparse)', fs_low));
+xlabel('Time (s)'); ylim([-1.5 1.5]);
+
+subplot(2,2,3);
+plot(f_ax_true(1:N_true/2), abs(fft(x_true))*2/N_true);
+title('Spectrum (true)'); xlabel('Hz'); xlim([0 1000]);
+xline(f_signal, 'r--', '750 Hz');
+
+subplot(2,2,4);
+stem(f_ax_low(1:N_low/2), abs(fft(x_low))*2/N_low, 'filled');
+title('Spectrum (aliased)'); xlabel('Hz'); xlim([0 500]);
+xline(fs_low - f_signal, 'r--', sprintf('%d Hz alias', fs_low - f_signal));
+
+%% Try different signal frequencies
+fprintf('\nAlias prediction table (fs = %d Hz):\n', fs_low);
+for f = [100 250 400 500 600 750 900]
+  if f < fs_low/2
+    alias = f;
+    note = '(no alias, f < Nyquist)';
+  else
+    alias = abs(f - fs_low);
+    note = sprintf('ALIAS at %d Hz', alias);
+  end
+  fprintf('  f = %4d Hz  →  %s\n', f, note);
+end
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint — What to look for</summary>
+  <p>In subplot (2,2,3) you'll see the spectral spike at 750 Hz — that's the true signal. In subplot (2,2,4), the spike has moved to 250 Hz — that's the alias! The sampled version <em>looks like</em> a 250 Hz signal. The terminal output will also print a table showing which frequencies alias and to where.</p>
+</details>
+
+<h3>Exercise Questions</h3>
+<ol>
+  <li>Change <code>f_signal</code> to <code>500</code> (exactly the Nyquist). What appears in the spectrum?</li>
+  <li>Change <code>f_signal</code> to <code>400</code> (below Nyquist). Does aliasing occur?</li>
+  <li>If $f_s = 1000$ Hz and you observe an unexpected peak at 200 Hz, what are the possible original frequencies that could have aliased to 200 Hz?</li>
+</ol>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Aliasing occurs when $f_{signal} \geq f_s/2$: high frequencies fold back into the baseband.</li>
+    <li>Alias frequency: $f_{alias} = |f - k \cdot f_s|$ for the appropriate integer $k$.</li>
+    <li>Aliasing is <strong>irreversible</strong> — prevent it before ADC with a lowpass anti-aliasing filter.</li>
+    <li>The <strong>Nyquist frequency</strong> $f_s/2$ is the highest frequency your digital system can represent.</li>
+    <li>Real ADCs include built-in anti-aliasing filters (oversampling + digital filter).</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m2-frequency/2.1-fourier-transform'); return false;">← 2.1 Fourier Transform</a>
+  <a href="#" onclick="loadTopic('m2-frequency/2.3-dft-fft'); return false;">Next: 2.3 DFT vs FFT →</a>
+</div>

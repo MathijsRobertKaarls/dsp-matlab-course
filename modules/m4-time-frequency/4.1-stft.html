@@ -1,0 +1,203 @@
+<h1>4.1 — STFT &amp; Spectrogram</h1>
+<p class="topic-meta">Module 4 · Time-Frequency Analysis · ~20 min</p>
+
+<h2>Introduction</h2>
+<p>The standard FFT gives you a single spectrum for the entire signal — it tells you <em>what</em> frequencies are present but not <em>when</em>. For a sustained tone, that's fine. But for speech, music, or a chirp (a frequency-sweeping signal), you need to know how the spectrum changes over time.</p>
+<p>The <strong>Short-Time Fourier Transform (STFT)</strong> solves this by sliding a window along the signal and computing the FFT at each position. The result is a 2D grid of frequency vs. time — the <strong>spectrogram</strong>.</p>
+
+<h2>Core Concept</h2>
+<h3>How the STFT Works</h3>
+<ol>
+  <li>Divide signal into short, overlapping segments using a window function.</li>
+  <li>Compute the FFT of each windowed segment.</li>
+  <li>Stack the spectra as columns → 2D time-frequency representation.</li>
+</ol>
+
+<div class="visual-box">
+  <svg viewBox="0 0 520 180" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif" font-size="10">
+    <!-- Signal -->
+    <text x="10" y="12" fill="#8892b0">Signal x[n]</text>
+    <path d="M10,40 C25,25 40,25 55,40 C70,55 85,55 100,40 C115,25 130,25 145,40 C160,55 175,60 190,55 C205,50 220,42 235,40 C250,38 265,30 280,25 C295,20 310,18 325,22 C340,26 355,35 370,40 C385,45 400,43 415,40 C430,37 445,35 460,38 C475,41 490,43 510,40"
+      stroke="#00e5ff" stroke-width="2" fill="none"/>
+
+    <!-- Window 1 -->
+    <rect x="10" y="20" width="100" height="35" fill="#7c3aed" opacity="0.2" rx="3"/>
+    <text x="60" y="75" text-anchor="middle" fill="#7c3aed">FFT₁</text>
+
+    <!-- Window 2 (overlapping) -->
+    <rect x="70" y="20" width="100" height="35" fill="#00e5ff" opacity="0.15" rx="3"/>
+    <text x="120" y="75" text-anchor="middle" fill="#00e5ff">FFT₂</text>
+
+    <!-- Window 3 -->
+    <rect x="130" y="20" width="100" height="35" fill="#7c3aed" opacity="0.2" rx="3"/>
+    <text x="180" y="75" text-anchor="middle" fill="#7c3aed">FFT₃</text>
+
+    <text x="260" y="48" fill="#ffd740">→ ...</text>
+
+    <!-- Spectrogram box -->
+    <text x="350" y="90" text-anchor="middle" fill="#8892b0">Spectrogram</text>
+    <rect x="290" y="95" width="200" height="75" rx="6" fill="none" stroke="#8892b0" stroke-width="1"/>
+    <!-- Freq axis -->
+    <text x="286" y="170" fill="#8892b0" text-anchor="middle">0</text>
+    <text x="286" y="97" fill="#8892b0" text-anchor="middle">fs/2</text>
+    <text x="285" y="138" fill="#8892b0" transform="rotate(-90,285,138)" font-size="9">Frequency</text>
+    <!-- Time axis -->
+    <text x="350" y="182" fill="#8892b0" text-anchor="middle" font-size="9">Time →</text>
+    <!-- Fake spectrogram content (gradient rectangles) -->
+    <rect x="295" y="130" width="30" height="35" fill="#7c3aed" opacity="0.6"/>
+    <rect x="325" y="120" width="30" height="45" fill="#7c3aed" opacity="0.7"/>
+    <rect x="355" y="110" width="30" height="55" fill="#00e5ff" opacity="0.5"/>
+    <rect x="385" y="100" width="30" height="65" fill="#00e5ff" opacity="0.6"/>
+    <rect x="415" y="95"  width="30" height="70" fill="#ffd740" opacity="0.4"/>
+    <rect x="445" y="100" width="40" height="65" fill="#7c3aed" opacity="0.4"/>
+  </svg>
+  <figcaption>STFT: slide a window, compute FFT for each position, stack the results as a 2D time-frequency heatmap (spectrogram).</figcaption>
+</div>
+
+<h3>The Time-Frequency Trade-Off</h3>
+<p>The STFT reveals a fundamental tension in time-frequency analysis:</p>
+
+<div class="callout warning">
+  <strong>Heisenberg-Gabor Uncertainty:</strong> You cannot simultaneously have perfect time resolution <em>and</em> perfect frequency resolution. A shorter window gives better time resolution but smears frequency. A longer window gives better frequency resolution but loses time detail.
+</div>
+
+<ul>
+  <li><strong>Short window</strong>: good at locating events in time, poor frequency detail.</li>
+  <li><strong>Long window</strong>: good frequency detail, poor time localization.</li>
+</ul>
+
+<p>This trade-off is fixed for the STFT — the window shape and length are chosen once. Wavelets (Topic 4.2) address this limitation.</p>
+
+<h2>Mathematical Foundation</h2>
+<p>The STFT of a discrete signal $x[n]$ with window $w[n]$:</p>
+
+$$X_{STFT}[m, k] = \sum_{n=-\infty}^{\infty} x[n]\, w[n - mH]\, e^{-j2\pi kn/N}$$
+
+<p>where:</p>
+<ul>
+  <li>$m$ — time frame index (which window position)</li>
+  <li>$H$ — hop size (samples between successive window positions)</li>
+  <li>$N$ — window length (FFT size)</li>
+  <li>$k$ — frequency bin index</li>
+</ul>
+
+<p><strong>Overlap</strong>: $\text{overlap\%} = (1 - H/N) \times 100\%$. Common choices: 50% or 75%.</p>
+
+<p><strong>Spectrogram</strong> = $|X_{STFT}[m, k]|^2$ (power) or $|X_{STFT}[m, k]|$ (magnitude), displayed as a heatmap.</p>
+
+<h2>Conceptual Questions</h2>
+
+<div class="quiz-block" data-explanation="STFT uses a short window, computes FFT for each time frame, and stacks them. This reveals how the frequency content changes over time — something a single FFT cannot show.">
+  <h3>Q1. What is the main advantage of the STFT over a single FFT?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">It computes faster than a regular FFT</li>
+    <li class="quiz-option" data-correct="true">It shows how the frequency content of a signal changes over time</li>
+    <li class="quiz-option" data-correct="false">It eliminates the need for windowing</li>
+    <li class="quiz-option" data-correct="false">It has better frequency resolution than the FFT</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="A short window gives coarse frequency resolution (Δf = fs/N is large) but fine time resolution (can locate events in time). A long window gives fine frequency resolution but poor time resolution — you can't tell when frequency changes happen.">
+  <h3>Q2. Increasing the STFT window length has what effect?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Better time resolution, worse frequency resolution</li>
+    <li class="quiz-option" data-correct="true">Better frequency resolution, worse time resolution</li>
+    <li class="quiz-option" data-correct="false">Better both time and frequency resolution</li>
+    <li class="quiz-option" data-correct="false">No effect — the trade-off is controlled by hop size</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="A chirp signal sweeps from one frequency to another over time. On a spectrogram it appears as a diagonal line, showing the frequency increase with time. A static FFT would just show a smeared band across all the frequencies.">
+  <h3>Q3. How does a linearly increasing chirp (frequency sweeping from 100 to 500 Hz) appear on a spectrogram?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">A single vertical line at 300 Hz (the average frequency)</li>
+    <li class="quiz-option" data-correct="false">A flat horizontal band across all time</li>
+    <li class="quiz-option" data-correct="true">A diagonal line rising from low to high frequency as time progresses</li>
+    <li class="quiz-option" data-correct="false">Multiple vertical stripes at 100, 200, 300, 400, 500 Hz</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>MATLAB Exercise</h2>
+<pre><code class="language-matlab">%% 4.1 STFT and Spectrogram
+
+fs = 4000;
+T  = 2;
+t  = 0:1/fs:T-1/fs;
+
+%% Part A — Chirp signal (sweeping frequency)
+f_start = 100;  f_end = 1500;
+x_chirp = chirp(t, f_start, T, f_end);
+
+% Spectrogram with different window lengths
+figure('Name','Spectrogram — Window Length Effect');
+win_sizes = [64, 256, 1024];
+for i = 1:3
+  subplot(1,3,i);
+  spectrogram(x_chirp, hann(win_sizes(i)), round(win_sizes(i)*0.75), win_sizes(i)*4, fs, 'yaxis');
+  title(sprintf('Window N=%d', win_sizes(i)));
+  colormap('hot'); colorbar off;
+end
+
+%% Part B — Multi-component non-stationary signal
+x_talk = sin(2*pi*300*t(1:fs))   ;   % 300 Hz for first second
+x_talk = [x_talk, sin(2*pi*800*t(1:fs))];   % 800 Hz for second second
+t2 = (0:length(x_talk)-1)/fs;
+
+figure('Name','Time-Varying Signal Spectrogram');
+subplot(2,1,1);
+plot(t2, x_talk);
+xlabel('Time (s)'); ylabel('Amplitude');
+title('Signal: 300 Hz (first second) → 800 Hz (second second)');
+
+subplot(2,1,2);
+spectrogram(x_talk, hann(512), 384, 2048, fs, 'yaxis');
+title('Spectrogram (reveals the transition)');
+colormap('jet');
+
+%% Part C — Manual STFT (understand the internals)
+N_win = 256;  hop = 64;
+x_test = x_chirp;
+n_frames = floor((length(x_test) - N_win) / hop) + 1;
+STFT = zeros(N_win/2, n_frames);
+w = hann(N_win);
+
+for m = 1:n_frames
+  idx = (m-1)*hop + (1:N_win);
+  frame = x_test(idx) .* w';
+  X = fft(frame, N_win);
+  STFT(:, m) = abs(X(1:N_win/2));
+end
+
+t_ax = (0:n_frames-1)*hop/fs;
+f_ax = (0:N_win/2-1)*fs/N_win;
+
+figure('Name','Manual STFT');
+imagesc(t_ax, f_ax, 20*log10(STFT + 1e-6));
+axis xy; colormap('hot');
+xlabel('Time (s)'); ylabel('Frequency (Hz)');
+title('Manual STFT of chirp'); colorbar;
+</code></pre>
+
+<details class="hint-box">
+  <summary>💡 Hint</summary>
+  <p>In Part A, compare the three window sizes. N=64: poor frequency detail (thick chirp line), good time resolution. N=1024: thin, precise chirp line in frequency but smeared in time. N=256 is usually a good compromise. Part B should clearly show the jump from one horizontal line to another at t=1s.</p>
+</details>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>The STFT computes short-time FFTs along a sliding window, producing a 2D time-frequency representation.</li>
+    <li>The <strong>spectrogram</strong> ($|STFT|^2$) shows how frequency content evolves over time.</li>
+    <li>Fundamental trade-off: short window = good time res, poor freq res; long window = vice versa.</li>
+    <li>In MATLAB: <code>spectrogram(x, window, overlap, nfft, fs)</code>.</li>
+    <li>Hop size and overlap control time axis density; window length controls frequency resolution.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m3-quality/3.4-interpolation'); return false;">← 3.4 Interpolation</a>
+  <a href="#" onclick="loadTopic('m4-time-frequency/4.2-wavelets'); return false;">Next: 4.2 Wavelets →</a>
+</div>
