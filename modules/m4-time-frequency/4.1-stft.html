@@ -121,6 +121,9 @@ $$X_{STFT}[m, k] = \sum_{n=-\infty}^{\infty} x[n]\, w[n - mH]\, e^{-j2\pi kn/N}$
 </div>
 
 <h2>MATLAB Exercise</h2>
+<div class="callout warning">
+  <strong>⚠ Requires Signal Processing Toolbox</strong> — <code>chirp</code>, <code>spectrogram</code>, and <code>hann</code> all ship with it. Verify with <code>license('test','Signal_Toolbox')</code>.
+</div>
 <pre><code class="language-matlab">%% 4.1 STFT and Spectrogram
 
 fs = 4000;
@@ -192,7 +195,7 @@ title('Manual STFT of chirp'); colorbar;
     <li>The STFT computes short-time FFTs along a sliding window, producing a 2D time-frequency representation.</li>
     <li>The <strong>spectrogram</strong> ($|STFT|^2$) shows how frequency content evolves over time.</li>
     <li>Fundamental trade-off: short window = good time res, poor freq res; long window = vice versa.</li>
-    <li>In MATLAB: <code>spectrogram(x, window, overlap, nfft, fs)</code>.</li>
+    <li>In MATLAB: <code>spectrogram(x, window, noverlap, nfft, fs)</code> — <code>noverlap</code> is the number of overlapping <em>samples</em>.</li>
     <li>Hop size and overlap control time axis density; window length controls frequency resolution.</li>
   </ul>
 </div>

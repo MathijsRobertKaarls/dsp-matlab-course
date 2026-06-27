@@ -9,7 +9,7 @@
 <p>Upsampling by integer factor $L$:</p>
 <ol>
   <li><strong>Zero-insert</strong>: insert $L-1$ zeros between each original sample.</li>
-  <li><strong>Lowpass filter</strong> (interpolation filter): cutoff at $f_s/(2L)$, gain $L$ to restore amplitude.</li>
+  <li><strong>Lowpass filter</strong> (interpolation filter): cutoff at the original Nyquist $f_s/2$ (equivalently $\pi/L$ in normalized digital frequency on the new rate $L f_s$), gain $L$ to restore amplitude.</li>
 </ol>
 
 $$x_L[n] = \begin{cases} x[n/L] & n = 0, L, 2L, \ldots \\ 0 & \text{otherwise} \end{cases}$$
@@ -89,11 +89,11 @@ $$H_{interp}(\hat\omega) = \begin{cases} L & |\hat\omega| \leq \pi/L \\ 0 & \tex
   <div class="quiz-feedback"></div>
 </div>
 
-<div class="quiz-block" data-explanation="The interpolation filter cutoff is at the original signal's Nyquist = fs/(2L) in the upsampled domain. Above this, all content is spectral images that must be removed.">
+<div class="quiz-block" data-explanation="The interpolation filter must pass the whole original baseband [0, fs/2], so its cutoff is the original Nyquist fs/2. In the upsampled domain (new rate L·fs, new Nyquist L·fs/2) that is a normalized cutoff of 1/L — exactly what the code uses: b_interp = L*fir1(64, 1/L). Everything above fs/2 is a spectral image to be removed.">
   <h3>Q3. For upsampling by $L=3$ at original rate $f_s$, the interpolation filter cutoff is:</h3>
   <ul class="quiz-options">
-    <li class="quiz-option" data-correct="false">$f_s / 2$ (original Nyquist)</li>
-    <li class="quiz-option" data-correct="true">$f_s / 6$ (= original Nyquist divided by $L$)</li>
+    <li class="quiz-option" data-correct="true">$f_s / 2$ (original Nyquist)</li>
+    <li class="quiz-option" data-correct="false">$f_s / 6$ (= original Nyquist divided by $L$)</li>
     <li class="quiz-option" data-correct="false">$3 f_s / 2$</li>
     <li class="quiz-option" data-correct="false">$f_s$</li>
   </ul>
@@ -101,6 +101,9 @@ $$H_{interp}(\hat\omega) = \begin{cases} L & |\hat\omega| \leq \pi/L \\ 0 & \tex
 </div>
 
 <h2>MATLAB Exercise</h2>
+<div class="callout warning">
+  <strong>⚠ Requires Signal Processing Toolbox</strong> — <code>upsample</code>, <code>interp</code>, <code>resample</code>, and <code>fir1</code>.
+</div>
 <pre><code class="language-matlab">%% 6.2 Upsampling: Zero Insertion + Interpolation Filter
 
 fs = 1000;
@@ -140,20 +143,24 @@ xlabel('Time (s)');
 %% Spectral comparison
 N = length(x);  Nu = length(x_up_raw);
 figure('Name','Upsampling Spectra');
-f_orig = (0:N/2-1)*fs/N;
-f_up   = (0:Nu/2-1)*fs_up/Nu;
+ko = 1:floor(N/2);   f_orig = (ko-1)*fs/N;       % slice magnitudes to match axes
+ku = 1:floor(Nu/2);  f_up   = (ku-1)*fs_up/Nu;
+
+Xo  = abs(fft(x))*2/N;
+Xur = abs(fft(x_up_raw))*2/Nu;
+Xuf = abs(fft(x_up_filtered))*2/Nu;   % filter already supplies gain L (b_interp = L*fir1)
 
 subplot(3,1,1);
-plot(f_orig, abs(fft(x))*2/N);
+plot(f_orig, Xo(ko));
 title('Original spectrum'); xlabel('Hz'); xlim([0 600]);
 
 subplot(3,1,2);
-plot(f_up, abs(fft(x_up_raw))*2/Nu);
+plot(f_up, Xur(ku));
 title('After zero insertion: images visible at multiples of fs/2'); xlabel('Hz'); xlim([0 2000]);
 for k = 1:L; xline(fs/2*k, 'r--'); end
 
 subplot(3,1,3);
-plot(f_up, abs(fft(x_up_filtered))*2/Nu*L);
+plot(f_up, Xuf(ku));
 title('After interpolation filter: images removed'); xlabel('Hz'); xlim([0 2000]);
 xline(fs/2, 'g--', 'original Nyquist');
 </code></pre>

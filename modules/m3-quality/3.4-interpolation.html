@@ -118,8 +118,10 @@ T = 0.2;
 t_low  = 0:1/fs_low:T;
 t_high = 0:1/fs_high:T;
 
-% True signal (bandlimited)
-f0 = 30;
+% True signal (bandlimited). Both components (f0 and 2*f0) must stay below
+% the low-rate Nyquist (fs_low/2 = 50 Hz), or the SAMPLES themselves alias
+% and no interpolator could recover x_true.
+f0 = 15;   % components at 15 Hz and 30 Hz, both < 50 Hz
 x_true = sin(2*pi*f0*t_high) + 0.5*sin(2*pi*2*f0*t_high);
 x_low  = sin(2*pi*f0*t_low)  + 0.5*sin(2*pi*2*f0*t_low);
 
@@ -155,6 +157,11 @@ fprintf('  %-10s : %.5f\n', 'resample', rms(x_resamp - x_true));
   <summary>💡 Hint</summary>
   <p>Expected RMS error order (best to worst): <code>resample</code> (sinc-like) ≈ <code>spline</code> &lt; <code>linear</code> &lt; <code>nearest</code>. Nearest-neighbor will have the largest error because it ignores curvature entirely. Spline should come very close to the true signal for this smooth, bandlimited test signal.</p>
 </details>
+
+<div class="callout warning">
+  <strong>⚠ Toolbox note</strong>
+  <code>interp1</code> (all methods) is base MATLAB. <code>rms()</code> and <code>resample()</code> require the Signal Processing Toolbox — in base MATLAB use <code>sqrt(mean(e.^2))</code> in place of <code>rms(e)</code>, and omit the <code>resample</code> line.
+</div>
 
 <div class="takeaways">
   <h3>Key Takeaways</h3>

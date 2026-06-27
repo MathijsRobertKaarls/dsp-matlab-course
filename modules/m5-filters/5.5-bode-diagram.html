@@ -17,7 +17,7 @@
   <li><strong>Passband gain</strong>: the flat region (ideally 0 dB for unit gain)</li>
   <li><strong>Cutoff frequency $f_c$</strong>: conventionally where the gain drops to $-3$ dB (half power)</li>
   <li><strong>Rolloff rate</strong>: how steeply the magnitude drops in the stopband, in dB/decade or dB/octave. Each first-order pole contributes −20 dB/decade. A 4th-order Butterworth rolls off at −80 dB/decade.</li>
-  <li><strong>Phase at cutoff</strong>: for a Butterworth, exactly −45° × order at $f_c$</li>
+  <li><strong>Phase at cutoff</strong>: for an <em>analog</em> Butterworth, exactly −45° × order at $f_c$ (digital, bilinear-warped designs deviate slightly)</li>
 </ul>
 
 <div class="visual-box">
@@ -89,7 +89,7 @@
 
 <p>In dB: $20\log_{10}|H| \approx \begin{cases} 0 \text{ dB} & \omega \ll \omega_c \\ -20\log_{10}(\omega/\omega_c) & \omega \gg \omega_c \end{cases}$</p>
 
-<p>For discrete-time filters, replace $s \to (z-1)/T$ (bilinear transform) or evaluate $H(e^{j\omega})$ directly.</p>
+<p>For discrete-time filters, map the analog prototype with the <strong>bilinear transform</strong> $s \to \frac{2}{T}\,\frac{z-1}{z+1}$, or evaluate $H(e^{j\omega})$ directly. (The simpler forward-difference approximation $s \to (z-1)/T$ is only first-order accurate.)</p>
 
 <h2>Conceptual Questions</h2>
 
@@ -127,6 +127,9 @@
 </div>
 
 <h2>MATLAB Exercise</h2>
+<div class="callout warning">
+  <strong>⚠ Requires Signal Processing Toolbox</strong> — <code>butter</code>, <code>cheby1</code>, <code>cheby2</code>, <code>ellip</code>, and <code>freqz</code>.
+</div>
 <pre><code class="language-matlab">%% 5.5 Bode Diagrams of Digital Filters
 
 fs = 10000;   % Higher fs for wide frequency range

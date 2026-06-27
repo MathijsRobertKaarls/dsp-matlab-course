@@ -154,68 +154,79 @@ $$|H_{ZOH}(f)| = T_s \left|\frac{\sin(\pi f T_s)}{\pi f T_s}\right| = T_s \cdot 
 
 <pre><code class="language-matlab">%% 2.4 DAC Zero-Order Hold (ZOH) Demonstration
 
-fs  = 1000;     % Original sampling rate
-fs2 = 100;      % "DAC output rate" (simulate ZOH)
-T   = 0.5;
+fs = 1000;          % Sampling rate = DAC output rate (Hz)
+T  = 0.5;
+Ts = 1/fs;
+t  = 0:Ts:T-Ts;     % Sample instants
+N  = length(t);
 
-t_orig = 0:1/fs:T;
-t_zoh  = 0:1/fs2:T;
+% "Continuous" reference on a fine grid (R fine points per sample period).
+% R is also the ZOH hold factor used to draw the staircase.
+R       = 50;
+fs_fine = R*fs;
+t_fine  = 0:1/fs_fine:T-1/fs_fine;
 
-% Generate test signal: sum of tones
-x = 0.5*sin(2*pi*50*t_orig) + 0.5*sin(2*pi*400*t_orig);
+% Test signal: a low tone (barely affected) + a tone near Nyquist (droops).
+% Both are below the Nyquist frequency fs/2 = 500 Hz.
+f_lo = 50; f_hi = 350;
+x      = 0.5*sin(2*pi*f_lo*t)      + 0.5*sin(2*pi*f_hi*t);        % samples
+x_fine = 0.5*sin(2*pi*f_lo*t_fine) + 0.5*sin(2*pi*f_hi*t_fine);   % "analog" original
 
-% Downsample to fs2 (simulate what DAC receives)
-x_s = x(1:fs/fs2:end);
+% ZOH reconstruction: hold each sample constant for one period Ts
+x_zoh = repelem(x, R);
+x_zoh = x_zoh(1:length(t_fine));
 
-% ZOH: repeat each sample fs/fs2 times
-x_zoh = repelem(x_s, fs/fs2);
-x_zoh = x_zoh(1:length(t_orig));
-
-%% Plot time domain comparison
+%% Plot time domain comparison (zoom in to see the staircase)
 figure('Name','ZOH Effect');
 subplot(2,1,1);
-plot(t_orig, x);
-hold on; stairs(t_orig, x_zoh, 'r');
-title('Original (blue) vs ZOH reconstruction (red)');
-xlabel('Time (s)'); legend('Original','ZOH output');
+plot(t_fine, x_fine, 'b');
+hold on; stairs(t, x, 'r');
+title('Original (blue) vs ZOH staircase (red)');
+xlabel('Time (s)'); legend('Original','ZOH output'); xlim([0 0.05]);
 
 %% Frequency domain comparison
-N = length(x);
-f_ax = (0:N/2-1)*fs/N;
-
+f_ax   = (0:N/2-1)*fs/N;
 X_orig = abs(fft(x))*2/N;
-X_zoh  = abs(fft(x_zoh))*2/N;
+
+M     = length(x_zoh);
+f_zoh = (0:floor(M/2)-1)*fs_fine/M;
+X_zoh = abs(fft(x_zoh))*2/M;
+base  = f_zoh <= fs/2;             % baseband only (ZOH also creates images above fs/2)
 
 subplot(2,1,2);
-plot(f_ax, X_orig(1:N/2), 'b', 'DisplayName','Original');
+plot(f_ax, X_orig(1:N/2), 'b', 'DisplayName','Original samples');
 hold on;
-plot(f_ax, X_zoh(1:N/2),  'r', 'DisplayName','ZOH');
+plot(f_zoh(base), X_zoh(base), 'r', 'DisplayName','ZOH output');
 xlabel('Frequency (Hz)'); ylabel('|X(f)|');
-title('Spectrum: note high-frequency droop in ZOH'); legend; xlim([0 fs/2]);
+title('Spectrum: 350 Hz tone droops, 50 Hz barely changes'); legend; xlim([0 fs/2]);
 
-%% Theoretical ZOH frequency response
-f = linspace(0, fs/2, 500);
-T_s = 1/fs2;
-H_zoh = abs(sinc(f * T_s));  % MATLAB sinc is normalized: sinc(x) = sin(pi*x)/(pi*x)
+%% Theoretical ZOH frequency response (reconstruction at rate fs)
+f     = linspace(0, fs/2, 500);
+H_zoh = abs(sinc(f/fs));    % MATLAB sinc is normalized: sinc(x) = sin(pi*x)/(pi*x)
 
 figure('Name','ZOH Frequency Response');
 plot(f, 20*log10(H_zoh));
 xlabel('Frequency (Hz)'); ylabel('Attenuation (dB)');
-title(sprintf('ZOH Sinc Roll-Off (DAC rate = %d Hz)', fs2));
-yline(-3.92, '--r', '-3.92 dB at Nyquist'); grid on; xlim([0 fs/2]);
+title('ZOH Sinc Roll-Off');
+yline(-3.92, '--r', '-3.92 dB at Nyquist (f_s/2)'); grid on; xlim([0 fs/2]);
 </code></pre>
 
 <details class="hint-box">
   <summary>💡 Hint</summary>
-  <p>The 50 Hz component should appear almost identical in both spectra (near DC, ZOH barely attenuates). The 400 Hz component (close to Nyquist of 500 Hz) will be visibly lower in the ZOH spectrum. The theoretical plot shows the smooth sinc roll-off — you'll see the ~3.9 dB droop right at 500 Hz.</p>
+  <p>The 50 Hz component should appear almost identical in both spectra (near DC, ZOH barely attenuates). The 350 Hz component (closer to the Nyquist frequency of 500 Hz) will be visibly lower in the ZOH spectrum. The theoretical plot shows the smooth sinc roll-off — you'll see the ~3.9 dB droop right at 500 Hz (= $f_s/2$).</p>
 </details>
 
 <h3>Exercise Questions</h3>
 <ol>
   <li>What is the ZOH attenuation at exactly $f = f_s/4$ (halfway to Nyquist)? Compute: $20\log_{10}(\text{sinc}(0.25))$ in MATLAB.</li>
-  <li>Change <code>fs2</code> to <code>200</code> Hz (closer to the original). Does the ZOH distortion get better or worse?</li>
+  <li>Change <code>f_hi</code> to <code>450</code> Hz (even closer to Nyquist). Does its ZOH droop get larger or smaller? Why?</li>
   <li>In high-quality audio DACs, oversampling (running the DAC at 128× the nominal rate) virtually eliminates ZOH droop. Why?</li>
 </ol>
+
+<div class="callout warning">
+  <strong>⚠ Toolbox note</strong>
+  <code>sinc()</code> requires the Signal Processing Toolbox. In base MATLAB, replace it with the inline definition <code>s = sin(pi*u)./(pi*u); s(u==0) = 1;</code> (the normalized sinc).
+</div>
 
 <div class="takeaways">
   <h3>Key Takeaways</h3>

@@ -124,6 +124,9 @@ $$|H(e^{j\omega})| = |g| \cdot \frac{\prod_k |e^{j\omega} - z_k|}{\prod_k |e^{j\
 </div>
 
 <h2>MATLAB Exercise</h2>
+<div class="callout warning">
+  <strong>⚠ Requires Signal Processing Toolbox</strong> — <code>butter</code>, <code>ellip</code>, <code>freqz</code>, <code>zplane</code>, and <code>zp2tf</code>.
+</div>
 <pre><code class="language-matlab">%% 5.6 Pole-Zero Plots and Geometric Frequency Response
 
 fs = 1000;
@@ -131,14 +134,7 @@ fs = 1000;
 %% Part A — Design various filters and examine pole-zero plots
 figure('Name','Pole-Zero Plots');
 
-filters = {
-  butter(2, 0.3, 'low'),     'Butterworth LP'
-  butter(4, 0.5, 'high'),    'Butterworth HP'
-  butter(3, [0.2 0.5], 'bandpass'), 'Butterworth BP'
-  butter(4, 0.3, 'low')      '4th order LP'
-};
-
-% Actually get b,a for each
+% Design four filters; keep numerator/denominator (b,a) for each
 [b1,a1] = butter(2, 0.3, 'low');
 [b2,a2] = butter(4, 0.5, 'high');
 [b3,a3] = butter(3, [0.2 0.5], 'bandpass');
@@ -152,10 +148,12 @@ for i = 1:4
   zplane(ba{i}{1}, ba{i}{2});
   title(ba{i}{3}, 'FontSize', 8);
 
+  % Capture freqz output and plot it manually. Calling freqz with no output
+  % arguments creates its own subplots and would clobber this 2x4 grid.
   subplot(2,4,i+4);
-  freqz(ba{i}{1}, ba{i}{2}, 512, fs);
-  title('');
-  xlabel('Hz'); ylabel('dB');
+  [H,f] = freqz(ba{i}{1}, ba{i}{2}, 512, fs);
+  plot(f, 20*log10(abs(H)));
+  xlabel('Hz'); ylabel('dB'); grid on;
 end
 
 %% Part B — Manual notch filter by pole-zero placement
@@ -163,8 +161,7 @@ end
 f_notch = 60;
 omega_n = 2*pi*f_notch/fs;
 
-% Place zeros ON unit circle at ±omega_n
-z_zeros = exp(1j*omega_n) * [1; -1];   % wait — use conjugate pair
+% Place zeros ON unit circle as a conjugate pair at ±omega_n
 z_zeros = [exp(1j*omega_n); exp(-1j*omega_n)];
 
 % Place poles slightly inside at same angle (to make narrow notch)

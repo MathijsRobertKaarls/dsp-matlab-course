@@ -66,7 +66,7 @@ $$y[n] = x_{filtered}[nM]$$
 
 $$Y(e^{j\hat\omega}) = \frac{1}{M} \sum_{k=0}^{M-1} X_{LP}\!\left(e^{j(\hat\omega - 2\pi k)/M}\right)$$
 
-<p>This shows $M$ aliased terms — exactly like the STFT aliasing formula. The anti-aliasing LPF ensures $X_{LP}(e^{j\hat\omega}) = 0$ for $|\hat\omega| > \pi/M$, so all but the $k=0$ term vanish.</p>
+<p>This shows $M$ aliased (spectral-replication) terms — the same kind of foldback as in ordinary sampling. The anti-aliasing LPF ensures $X_{LP}(e^{j\hat\omega}) = 0$ for $|\hat\omega| > \pi/M$, so all but the $k=0$ term vanish.</p>
 
 <h2>Conceptual Questions</h2>
 
@@ -104,6 +104,9 @@ $$Y(e^{j\hat\omega}) = \frac{1}{M} \sum_{k=0}^{M-1} X_{LP}\!\left(e^{j(\hat\omeg
 </div>
 
 <h2>MATLAB Exercise</h2>
+<div class="callout warning">
+  <strong>⚠ Requires Signal Processing Toolbox</strong> — <code>downsample</code>, <code>decimate</code>, and <code>fir1</code>.
+</div>
 <pre><code class="language-matlab">%% 6.3 Downsampling / Decimation
 
 fs = 8000;
@@ -136,8 +139,8 @@ subplot(3,2,1); plot(t(1:400), x(1:400));
 title(sprintf('Original: fs=%d Hz', fs)); xlabel('Time (s)');
 
 subplot(3,2,2);
-N = length(x);
-plot((0:N/2-1)*fs/N, abs(fft(x))*2/N);
+N = length(x);  kN = 1:floor(N/2);  X = abs(fft(x))*2/N;
+plot((kN-1)*fs/N, X(kN));
 title('Original spectrum'); xlabel('Hz'); xlim([0 fs/2]);
 xline(fs_new/2,'r--','new Nyquist');
 
@@ -145,17 +148,17 @@ subplot(3,2,3); plot(t_new, x_wrong);
 title('Decimated WITHOUT anti-alias (aliased!)'); xlabel('Time (s)');
 
 subplot(3,2,4);
-Nw = length(x_wrong);
-plot((0:Nw/2-1)*fs_new/Nw, abs(fft(x_wrong))*2/Nw);
-title(sprintf('Aliased spectrum — 1800Hz appears at %dHz', fs_new-f2));
+Nw = length(x_wrong);  kw = 1:floor(Nw/2);  Xw = abs(fft(x_wrong))*2/Nw;
+plot((kw-1)*fs_new/Nw, Xw(kw));
+title(sprintf('Aliased spectrum — 1800Hz appears at %dHz', abs(fs_new-f2)));
 xlabel('Hz'); xlim([0 fs_new/2]);
 
 subplot(3,2,5); plot(t_new, x_correct);
 title('Decimated WITH anti-alias filter'); xlabel('Time (s)');
 
 subplot(3,2,6);
-Nc = length(x_correct);
-plot((0:Nc/2-1)*fs_new/Nc, abs(fft(x_correct))*2/Nc);
+Nc = length(x_correct);  kc = 1:floor(Nc/2);  Xc = abs(fft(x_correct))*2/Nc;
+plot((kc-1)*fs_new/Nc, Xc(kc));
 title('Clean spectrum — only 200Hz remains'); xlabel('Hz'); xlim([0 fs_new/2]);
 
 fprintf('\nWith anti-alias filter, 1800Hz component is removed.\n');

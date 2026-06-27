@@ -153,7 +153,7 @@ x1 = sin(2*pi*f1*t);
 X1 = fft(x1);       % Complex spectrum
 
 figure('Name','FFT of Sine Wave');
-subplot(2,1,1); plot(t, x1); xlabel('Time (s)'); ylabel('x[n]'); title('440 Hz sine — time domain'); xlim([0 0.05]);
+subplot(2,1,1); plot(t, x1); xlabel('Time (s)'); ylabel('x[n]'); title('100 Hz sine — time domain'); xlim([0 0.05]);
 subplot(2,1,2);
 plot(f(1:N/2), abs(X1(1:N/2)) * 2/N);  % One-sided, normalized
 xlabel('Frequency (Hz)'); ylabel('|X(f)|'); title('Magnitude spectrum'); xlim([0 fs/2]);

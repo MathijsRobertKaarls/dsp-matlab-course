@@ -158,12 +158,14 @@ stem(t_low(1:50), x_low(1:50), 'filled'); title(sprintf('Sampled at %d Hz (spars
 xlabel('Time (s)'); ylim([-1.5 1.5]);
 
 subplot(2,2,3);
-plot(f_ax_true(1:N_true/2), abs(fft(x_true))*2/N_true);
+X_true = abs(fft(x_true))*2/N_true; k_true = 1:floor(N_true/2);
+plot(f_ax_true(k_true), X_true(k_true));
 title('Spectrum (true)'); xlabel('Hz'); xlim([0 1000]);
 xline(f_signal, 'r--', '750 Hz');
 
 subplot(2,2,4);
-stem(f_ax_low(1:N_low/2), abs(fft(x_low))*2/N_low, 'filled');
+X_low = abs(fft(x_low))*2/N_low; k_low = 1:floor(N_low/2);
+stem(f_ax_low(k_low), X_low(k_low), 'filled');
 title('Spectrum (aliased)'); xlabel('Hz'); xlim([0 500]);
 xline(fs_low - f_signal, 'r--', sprintf('%d Hz alias', fs_low - f_signal));
 

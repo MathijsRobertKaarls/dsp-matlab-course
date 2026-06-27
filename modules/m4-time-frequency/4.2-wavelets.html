@@ -129,7 +129,7 @@ $$W_x(a, b) = \frac{1}{\sqrt{a}} \int_{-\infty}^{\infty} x(t)\, \psi^*\!\left(\f
 
 <h2>MATLAB Exercise</h2>
 <div class="callout warning">
-  <strong>⚠ Requires Wavelet Toolbox</strong>. Verify with: <code>license('test','Wavelet_Toolbox')</code>. Octave users can use the <code>wavelets</code> package.
+  <strong>⚠ Requires Wavelet Toolbox</strong> (<code>cwt</code>, <code>wavedec</code>, <code>wthresh</code>, <code>waverec</code>, <code>detcoef</code>). Verify with: <code>license('test','Wavelet_Toolbox')</code>. Parts A and C also use <code>chirp</code> and <code>rms</code> from the <strong>Signal Processing Toolbox</strong> (in base MATLAB, replace <code>rms(e)</code> with <code>sqrt(mean(e.^2))</code>). Octave users can use the <code>wavelets</code> package.
 </div>
 <pre><code class="language-matlab">%% 4.2 CWT and DWT
 
@@ -162,7 +162,10 @@ x_noisy = x_clean + 0.8*randn(size(t));
 [C, L] = wavedec(x_noisy, 5, 'db4');   % 5-level decomposition with Daubechies-4
 
 % Soft thresholding (denoising)
-sigma = median(abs(C)) / 0.6745;        % Robust noise estimate
+% Donoho robust noise estimate: use ONLY the finest-level detail coeffs (cD1),
+% not the full vector C (which includes the large-amplitude approximation coeffs).
+cD1   = detcoef(C, L, 1);
+sigma = median(abs(cD1)) / 0.6745;      % Robust noise estimate (MAD of cD1)
 thr   = sigma * sqrt(2*log(length(x_noisy)));
 C_thr = wthresh(C, 's', thr);          % Soft threshold
 x_denoised = waverec(C_thr, L, 'db4'); % Reconstruct

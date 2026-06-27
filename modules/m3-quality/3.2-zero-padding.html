@@ -130,7 +130,7 @@ for i = 1:4
   xp = [x, zeros(1, M-N)];      % zero-pad
   Xp = fft(xp);
   f_ax = (0:M/2-1)*fs/M;
-  plot(f_ax, abs(Xp(1:M/2))*2/M, colors{i}, 'DisplayName', sprintf('M=%d', M));
+  plot(f_ax, abs(Xp(1:M/2))*2/N, colors{i}, 'DisplayName', sprintf('M=%d', M));
   hold on;
 end
 xline(f1,'k--'); xline(f2,'k--');

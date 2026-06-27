@@ -123,7 +123,7 @@ s = A * sin(2*pi*f0*t);
 
 % Simulate M noisy measurements
 M = 64;
-sigma = 2;   % noise std dev → SNR_single ≈ 20·log10(A/sigma) ≈ -6 dB
+sigma = 2;   % noise std dev → power SNR_single = 10·log10((A^2/2)/sigma^2) ≈ -9 dB
 rng(42);     % reproducible
 
 measurements = s + sigma * randn(M, length(t));

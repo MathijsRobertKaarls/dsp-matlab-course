@@ -137,6 +137,9 @@ $$H(z) = \frac{B(z)}{A(z)} = \frac{\sum_{k=0}^{M} b_k z^{-k}}{1 + \sum_{k=1}^{N}
 </div>
 
 <h2>MATLAB Exercise</h2>
+<div class="callout warning">
+  <strong>⚠ Requires Signal Processing Toolbox</strong> — <code>freqz</code>, <code>zplane</code>, and <code>zp2tf</code> (the <code>filter</code> demo itself is base MATLAB).
+</div>
 <pre><code class="language-matlab">%% 5.2 Z-Transform and Transfer Function Analysis
 
 %% Part A — Simple pole-zero analysis
@@ -191,7 +194,11 @@ zeros_z = [0; 0];
 
 figure('Name','Pole-Zero Bandpass Design');
 subplot(1,2,1); zplane(b_pz, a_pz); title(sprintf('Poles near %dHz (r=%.2f)', f0, r));
-subplot(1,2,2); freqz(b_pz, a_pz, 1024, fs);
+% Capture freqz output and plot manually — freqz with no output arguments
+% builds its own subplots and would clobber the zplane in subplot(1,2,1).
+subplot(1,2,2);
+[H,f_ax] = freqz(b_pz, a_pz, 1024, fs);
+plot(f_ax, 20*log10(abs(H))); xlabel('Hz'); ylabel('dB'); grid on;
 title(sprintf('Bandpass centered at %dHz', f0));
 
 fprintf('\nPole locations:\n');
@@ -200,7 +207,7 @@ fprintf('  |p| = %.3f (should be < 1 for stability)\n', abs(roots(a_pz)));
 
 <details class="hint-box">
   <summary>💡 Hint</summary>
-  <p>In Part B, notice how poles close to the unit circle (r=0.95) produce a very sharp, resonant peak in the frequency response. At r=1.0, the pole is ON the unit circle — the system is marginally unstable (oscillates forever). Part C demonstrates direct pole-zero design: placing conjugate poles near the unit circle at the desired frequency creates a bandpass filter.</p>
+  <p>In Part B, notice how poles close to the unit circle (r=0.95) produce a very sharp, resonant peak in the frequency response. At r=1.0, the pole is ON the unit circle — the system is marginally stable (not BIBO stable): its impulse response no longer decays. (A pole at z=+1 gives a non-decaying accumulator; a complex pole pair on the circle would oscillate forever.) Part C demonstrates direct pole-zero design: placing conjugate poles near the unit circle at the desired frequency creates a bandpass filter.</p>
 </details>
 
 <div class="takeaways">

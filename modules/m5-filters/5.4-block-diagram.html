@@ -137,6 +137,9 @@ $$H(z) = \frac{b_0 + b_1 z^{-1} + b_2 z^{-2}}{1 + a_1 z^{-1} + a_2 z^{-2}}$$
 </div>
 
 <h2>MATLAB Exercise</h2>
+<div class="callout warning">
+  <strong>⚠ Requires Signal Processing Toolbox</strong> — <code>butter</code>, <code>freqz</code>, <code>zplane</code>, <code>tf2sos</code>, and <code>sosfilt</code>.
+</div>
 <pre><code class="language-matlab">%% 5.4 Block Diagram → Difference Equation → Filter
 
 %% Part A — Extract coefficients and draw pole-zero / freq response
@@ -157,13 +160,19 @@ for k = 0:length(b)-1
   end
 end
 for k = 1:length(a)-1
-  fprintf(' - %.4f*y[n-%d]', a(k+1), k);
+  % Parenthesize so a negative coefficient is unambiguous (e.g. " - (-2.0000)*y[n-1]")
+  fprintf(' - (%.4f)*y[n-%d]', a(k+1), k);
 end
 fprintf('\n');
 
 figure('Name','Block Diagram Verification');
 subplot(1,2,1); zplane(b, a); title('Pole-Zero Plot');
-subplot(1,2,2); freqz(b, a, 512, 1000); title('Frequency Response');
+% Capture freqz output and plot manually — freqz with no output arguments
+% builds its own subplots and would clobber the zplane in subplot(1,2,1).
+subplot(1,2,2);
+[H,f] = freqz(b, a, 512, 1000);
+plot(f, 20*log10(abs(H))); xlabel('Hz'); ylabel('dB'); grid on;
+title('Frequency Response');
 
 %% Part B — Second-order sections (SOS): numerically stable implementation
 % For high-order filters, direct form can have numerical issues

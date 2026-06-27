@@ -142,6 +142,9 @@ $$H(e^{j\omega}) = \frac{\sum_{k=0}^{M} b_k e^{-j\omega k}}{1 + \sum_{k=1}^{N} a
 </div>
 
 <h2>MATLAB Exercise</h2>
+<div class="callout warning">
+  <strong>⚠ Requires Signal Processing Toolbox</strong> — <code>fir1</code>, <code>butter</code>, <code>cheby1</code>, <code>freqz</code>, <code>filtfilt</code>, and <code>iirnotch</code>.
+</div>
 <pre><code class="language-matlab">%% 5.1 Filter Design and Analysis
 
 fs = 1000;   % Sampling frequency
@@ -204,7 +207,11 @@ types = {b_fir,1; b_hp,1; b_bp,a_bp; b_notch,a_notch};
 titles = {'Lowpass FIR','Highpass FIR','Bandpass IIR','Notch IIR (50Hz)'};
 for i=1:4
   subplot(2,2,i);
-  freqz(types{i,1}, types{i,2}, 1024, fs);
+  % Capture freqz output and plot manually — freqz with no output arguments
+  % builds its own subplots and would clobber this 2x2 grid.
+  [H,f] = freqz(types{i,1}, types{i,2}, 1024, fs);
+  plot(f, 20*log10(abs(H)));
+  xlabel('Hz'); ylabel('dB'); grid on;
   title(titles{i});
 end
 </code></pre>

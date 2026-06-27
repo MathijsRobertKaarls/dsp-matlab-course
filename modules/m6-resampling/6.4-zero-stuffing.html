@@ -2,7 +2,7 @@
 <p class="topic-meta">Module 6 · Resampling · ~15 min</p>
 
 <h2>Introduction</h2>
-<p>Zero stuffing (also called zero insertion or zero-padding in the time domain) is the step of inserting zeros between samples when upsampling. It's the first step in the upsampling process we saw in Topic 6.2, but it's important enough to understand in isolation — especially to see exactly what it does to the spectrum and why an interpolation filter is essential afterward.</p>
+<p>Zero stuffing (also called zero insertion) is the step of inserting zeros <em>between</em> existing samples when upsampling. Don't confuse it with zero-<em>padding</em>, which appends zeros to the <em>end</em> of a signal before an FFT (Topic 6.5 contrasts the two). It's the first step in the upsampling process we saw in Topic 6.2, but it's important enough to understand in isolation — especially to see exactly what it does to the spectrum and why an interpolation filter is essential afterward.</p>
 
 <h2>Core Concept</h2>
 <h3>What Zero Stuffing Does</h3>
@@ -125,6 +125,9 @@ $$X_L(e^{j\hat\omega}) = X(e^{j\hat\omega L})$$
 </div>
 
 <h2>MATLAB Exercise</h2>
+<div class="callout warning">
+  <strong>⚠ Requires Signal Processing Toolbox</strong> — <code>upsample</code>, <code>interp</code>, <code>resample</code>, and <code>fir1</code>.
+</div>
 <pre><code class="language-matlab">%% 6.4 Zero Stuffing vs Proper Upsampling
 
 fs = 500;
@@ -172,12 +175,12 @@ title('resample() polyphase — most accurate'); xlim([0 0.06]);
 
 %% Spectrum: show images
 N = length(x_stuffed);
-f_ax = (0:N/2-1)*fs_new/N;
+ks = 1:floor(N/2);  f_ax = (ks-1)*fs_new/N;  Xs = abs(fft(x_stuffed))*2/N;
 figure('Name','Zero Stuffing Spectrum');
-plot(f_ax, abs(fft(x_stuffed))*2/N, 'DisplayName','Zero stuffed');
+plot(f_ax, Xs(ks), 'DisplayName','Zero stuffed');
 hold on;
-Na = length(x_interp);
-plot((0:Na/2-1)*fs_new/Na, abs(fft(x_interp))*2/Na, 'r', 'DisplayName','After interp filter');
+Na = length(x_interp);  ka = 1:floor(Na/2);  Xa = abs(fft(x_interp))*2/Na;
+plot((ka-1)*fs_new/Na, Xa(ka), 'r', 'DisplayName','After interp filter');
 for k = 0:L; xline(fs/2 + k*fs, 'k:', sprintf('%dHz', round(fs/2+k*fs))); end
 legend; xlabel('Hz'); ylabel('|X|');
 title('Spectral images from zero stuffing → removed by interpolation filter');

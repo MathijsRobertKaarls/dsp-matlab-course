@@ -118,6 +118,9 @@ $$y[m] = x_a(m \cdot T_{s,new}) = x_a\!\left(\frac{m Q}{P f_s}\right)$$
 </div>
 
 <h2>MATLAB Exercise</h2>
+<div class="callout warning">
+  <strong>⚠ Requires Signal Processing Toolbox</strong> — <code>resample</code>, <code>upsample</code>, and <code>downsample</code>.
+</div>
 <pre><code class="language-matlab">%% 6.1 Resampling Overview — resample() demo
 
 %% Generate test signal
@@ -154,11 +157,13 @@ y2 = resample(x, P2, Q2);
 fs2 = fs_orig * P2 / Q2;
 
 N1 = length(x);  N2 = length(y2);
+k1 = 1:floor(N1/2);  X1 = abs(fft(x))*2/N1;     % slice magnitude to match axis
+k2 = 1:floor(N2/2);  Y2 = abs(fft(y2))*2/N2;
 subplot(2,1,1);
-stem((0:N1/2-1)*fs_orig/N1, abs(fft(x))*2/N1, 'filled', 'MarkerSize',3);
+stem((k1-1)*fs_orig/N1, X1(k1), 'filled', 'MarkerSize',3);
 title('Original spectrum'); xlabel('Hz'); xlim([0 1200]);
 subplot(2,1,2);
-stem((0:N2/2-1)*fs2/N2, abs(fft(y2))*2/N2, 'filled', 'MarkerSize',3);
+stem((k2-1)*fs2/N2, Y2(k2), 'filled', 'MarkerSize',3);
 title('After 2× upsampling (same frequencies, higher Nyquist)'); xlabel('Hz'); xlim([0 1200]);
 </code></pre>
 

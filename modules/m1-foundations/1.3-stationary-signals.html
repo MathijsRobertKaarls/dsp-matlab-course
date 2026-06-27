@@ -116,7 +116,7 @@ $$x(t) = \frac{4}{\pi} \sum_{k=0}^{\infty} \frac{1}{2k+1} \sin\!\left(2\pi (2k+1
   <div class="quiz-feedback"></div>
 </div>
 
-<div class="quiz-block" data-explanation="Phase shift of π (180°) means the signal is flipped. Adding x(t) + x(t+π) = sin(ωt) + sin(ωt+π) = sin(ωt) - sin(ωt) = 0. Complete cancellation — this is destructive interference.">
+<div class="quiz-block" data-explanation="A phase shift of π (180°) flips the signal: sin(ωt) + sin(ωt+π) = sin(ωt) - sin(ωt) = 0. Complete cancellation — this is destructive interference.">
   <h3>Q2. What happens when you add two identical sine waves that are 180° out of phase?</h3>
   <ul class="quiz-options">
     <li class="quiz-option" data-correct="false">The amplitude doubles</li>
@@ -191,7 +191,7 @@ end
 <ol>
   <li>In Part A, how many cycles of the 200 Hz signal appear in 3 periods? What about the 400 Hz version?</li>
   <li>In Part B, change <code>N_harmonics</code> to <code>1</code>, <code>3</code>, and <code>50</code>. Describe what changes.</li>
-  <li>What is the RMS value of a pure sine wave with amplitude $A = 1$? Verify with MATLAB: <code>rms(x1)</code>.</li>
+  <li>What is the RMS value of a pure sine wave with amplitude $A = 1$? Verify with MATLAB: <code>sqrt(mean(x1.^2))</code> (base MATLAB), or <code>rms(x1)</code> if you have the Signal Processing Toolbox.</li>
 </ol>
 
 <div class="takeaways">
