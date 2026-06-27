@@ -202,6 +202,13 @@ title('Filtered output'); legend;
   <p>The difference equation printed in Part A translates directly to a block diagram: each b coefficient is a feedforward multiplier, each a coefficient is a feedback multiplier. The SOS form in Part B splits the high-order filter into cascaded 2nd-order "biquad" sections — this avoids numerical precision problems that can occur with high-order direct-form implementations.</p>
 </details>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li><strong>Part A:</strong> <code>butter(4, 200/(1000/2))</code> produces 5 feedforward <code>b</code> and 5 feedback <code>a</code> coefficients (with <code>a(1) = 1</code>), so the printed difference equation has terms up to <code>x[n-4]</code> and <code>y[n-4]</code>. DC gain <code>sum(b)/sum(a) ≈ 1</code>. The pole-zero plot shows 4 poles inside the unit circle (stable) and 4 zeros at $z = -1$; the response is a lowpass reaching $-3$ dB near 200 Hz.</li>
+  <li><strong>Part B:</strong> <code>tf2sos</code> splits the 4th-order filter into 2 cascaded second-order (biquad) sections; <code>sosfilt(sos,x)*g</code> matches the direct-form output to machine precision ("Max SOS vs Direct difference" ~<code>1e-15</code> at this order, with SOS far more robust at high orders). The filtered signal keeps the 50 Hz tone and removes the 400 Hz tone and the noise.</li>
+  <li><strong>Hint question:</strong> each <code>b</code> is a feedforward multiplier and each <code>a</code> a feedback multiplier in the block diagram; cascaded SOS/biquad sections avoid the numerical issues of a single high-order direct form.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

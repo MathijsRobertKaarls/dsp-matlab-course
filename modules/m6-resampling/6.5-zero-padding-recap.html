@@ -244,6 +244,14 @@ fprintf('Zero Stuffing: fs increased to %d Hz, images at multiples of %d Hz\n', 
   <strong>✓ Course Complete!</strong> You have now covered all 6 modules of the DSP with MATLAB course — from ADC basics and the Fourier Transform through filter design, time-frequency analysis, and multirate processing. Congratulations!
 </div>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li>The signal is a $f_0 = 30$ Hz tone, $N = 32$ samples at <code>fs = 200</code> Hz. Both methods start from this identical signal (top two subplots match).</li>
+  <li><strong>Zero padding</strong> (<code>fft(x, 256)</code> / <code>x_pad = [x, zeros(1, M-N)]</code>) appends $M - N = 224$ zeros at the <em>end</em>. The sample rate stays $200$ Hz; only the DFT grid gets denser — bin spacing drops from $f_s/N = 6.25$ Hz to $f_s/M = 200/256 \approx 0.78$ Hz. The spectrum looks smoother (sinc-interpolated between bins) but the single peak still sits at $30$ Hz — no new information, no better true resolution.</li>
+  <li><strong>Zero stuffing</strong> (<code>upsample(x, L)</code> with $L = M/N = 8$) inserts zeros <em>between</em> samples, raising the effective rate to <code>fs_up = 1600</code> Hz. Its spectrum shows the $30$ Hz peak plus spectral images at multiples of $f_s/2 = 100$ Hz — e.g. $170$ Hz ($f_s\!-\!f_0$), $230$ Hz ($f_s\!+\!f_0$), $370$ Hz, $430$ Hz… up to the new Nyquist of $800$ Hz. The interpolation filter <code>L*fir1(64, 1/L)</code> removes the images, leaving only the $30$ Hz baseband.</li>
+  <li>The <code>fprintf</code> summary confirms the contrast: zero padding keeps $f_s = 200$ Hz with bin size $\approx 0.78$ Hz; zero stuffing raises $f_s$ to $1600$ Hz and produces images at multiples of $100$ Hz. Neither adds true signal information — zero padding only interpolates the spectrum, while zero stuffing replicates it.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

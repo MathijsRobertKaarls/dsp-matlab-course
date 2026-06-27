@@ -205,6 +205,14 @@ fprintf('Rolloff per decade from fc to -20dB: %.0f dB/decade\n', ...
   <p>Part B shows the classic filter type trade-offs. Butterworth: maximally flat passband, no ripple. Chebyshev I: ripple in passband, steeper rolloff. Chebyshev II: ripple in stopband, flat passband. Elliptic: ripple in both, steepest possible rolloff for given order — most efficient. The measured rolloff in Part C should be close to the theoretical 80 dB/decade for a 4th-order filter.</p>
 </details>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li><strong>Part A:</strong> all four Butterworth orders cross $-3$ dB at <code>Fc = 1000</code> Hz; the stopband rolloff is $-20, -40, -80, -160$ dB/decade for orders 1, 2, 4, 8 (i.e. $-20N$). Higher order means a sharper transition and more total phase lag.</li>
+  <li><strong>Part B:</strong> at the same order and cutoff — Butterworth is maximally flat (no ripple); Chebyshev I ripples in the passband but rolls off faster; Chebyshev II is flat in the passband but ripples (with nulls) in the stopband; Elliptic ripples in both and has the steepest transition.</li>
+  <li><strong>Part C:</strong> the printed $-3$ dB frequency is ≈ <code>1000</code> Hz and the $-20$ dB frequency ≈ <code>1778</code> Hz ($1000 \times 10^{0.25}$); the rolloff measured over that span is ≈ $-70$ dB/decade, approaching the asymptotic $-80$ dB/decade for a 4th-order filter deeper in the stopband.</li>
+  <li><strong>Hint question:</strong> the type trade-offs above hold, and the measured rolloff is in the ballpark of the theoretical $-20N = -80$ dB/decade for $N = 4$.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

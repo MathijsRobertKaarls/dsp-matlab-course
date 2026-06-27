@@ -221,6 +221,15 @@ end
   <p>Note the key difference in the phase plot: FIR phase is a straight line (linear phase = constant group delay). IIR phase curves — different frequencies are delayed by different amounts, distorting the waveform shape. <code>filtfilt()</code> applies the filter twice (forward then backward) to achieve zero-phase — but this requires the complete signal (not real-time).</p>
 </details>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li><strong>Magnitude plot:</strong> both the order-64 FIR and the 4th-order IIR Butterworth pass the 30 Hz tone and reach about $-3$ dB near <code>Fc = 100</code> Hz, then roll off. The 300 Hz interference and the broadband <code>randn</code> noise are strongly attenuated.</li>
+  <li><strong>Phase plot:</strong> <code>H_fir</code> is a straight line (linear phase → constant group delay of $N/2 = 32$ samples), while <code>H_iir</code> is curved (non-linear phase).</li>
+  <li><strong>Time-domain panels:</strong> <code>y_fir</code> is a clean 30 Hz sine delayed by ~32 samples; <code>y_iir</code> from <code>filter()</code> is causal but phase-distorted; <code>y_filtfilt</code> overlays the true <code>x_clean</code> (red dashed) with zero phase shift — but <code>filtfilt</code> needs the whole signal, so it is offline-only.</li>
+  <li><strong>Filter-types panel:</strong> the lowpass FIR rolls off above 100 Hz; the highpass FIR (<code>0.3</code> → 150 Hz cutoff) passes the high band; the bandpass IIR passes roughly 50–200 Hz (<code>[0.1 0.4]</code> of Nyquist); the notch IIR shows a sharp dip at 50 Hz.</li>
+  <li><strong>Hint question:</strong> FIR gives linear phase, so the waveform shape is preserved; <code>filtfilt</code> achieves zero phase by filtering forward then backward, at the cost of needing the entire signal (offline only).</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

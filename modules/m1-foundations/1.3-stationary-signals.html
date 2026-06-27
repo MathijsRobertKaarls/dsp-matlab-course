@@ -194,6 +194,13 @@ end
   <li>What is the RMS value of a pure sine wave with amplitude $A = 1$? Verify with MATLAB: <code>sqrt(mean(x1.^2))</code> (base MATLAB), or <code>rms(x1)</code> if you have the Signal Processing Toolbox.</li>
 </ol>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li>The window <code>win = 1:round(fs/f0*3)</code> spans 3 periods of the 200 Hz reference, so <code>x1</code> shows <strong>3 cycles</strong>. In that same time window the double-frequency signal <code>x3</code> (400 Hz) completes <strong>6 cycles</strong> — twice as many.</li>
+  <li>With <code>N_harmonics = 1</code> the output <code>x_sq</code> is just the fundamental sine; with <code>3</code> it begins to flatten toward a square shape; with <code>50</code> it looks like a sharp square wave, though the <strong>Gibbs overshoot</strong> near the edges never disappears — it only narrows.</li>
+  <li>For a unit-amplitude sine the RMS is $A/\sqrt{2} = 1/\sqrt{2} \approx 0.707$, so <code>sqrt(mean(x1.^2))</code> returns approximately <code>0.7071</code>.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

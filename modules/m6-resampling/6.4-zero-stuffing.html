@@ -192,6 +192,14 @@ xlim([0 fs_new/2]);
   <p>The spectrum of the zero-stuffed signal shows the original 80 Hz peak plus images at 420 Hz, 580 Hz, 920 Hz... (at fs-80=420, fs+80=580, 2fs-80=920 etc.). The interpolation filter removes everything above fs/2=250 Hz, leaving only the 80 Hz baseband component.</p>
 </details>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li>The original $f_0 = 80$ Hz tone is sampled at <code>fs = 500</code> Hz. <code>upsample(x, 4)</code> inserts $L-1 = 3$ zeros between each sample, raising the rate to <code>fs_new = 2000</code> Hz and quadrupling the length.</li>
+  <li>Method A (zero stuffing only) is visibly discontinuous — every real sample is followed by three zeros — and is <em>not</em> a usable upsampled signal. Method B (zero stuffing + <code>L*fir1(64, 1/L)</code> interpolation filter) and Method C (<code>resample(x, L, 1)</code> polyphase) both track the fine "true" reference <code>x_ref</code> smoothly; the polyphase result is the most accurate (better passband/stopband and linear phase).</li>
+  <li>The zero-stuffed spectrum keeps the $80$ Hz baseband peak and adds $L-1 = 3$ images. Within $[0, 1000]$ Hz they fall at $420$ Hz ($f_s\!-\!f_0$), $580$ Hz ($f_s\!+\!f_0$), and $920$ Hz ($2f_s\!-\!f_0$) — copies repeating about the multiples of $f_s/2 = 250$ Hz marked by the dotted lines.</li>
+  <li>After the interpolation filter (cutoff $\pi/L$, i.e. the original Nyquist $f_s/2 = 250$ Hz, gain $L$) only the $80$ Hz baseband peak remains; all images are removed. This is the key point of the topic: zero stuffing alone replicates the spectrum, and the interpolation filter is what makes it a true upsample.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

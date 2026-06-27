@@ -172,6 +172,14 @@ title('After 2× upsampling (same frequencies, higher Nyquist)'); xlabel('Hz'); 
   <p>After resampling, the signal should still contain exactly 440 Hz and 880 Hz — just represented at a different sample rate. The spectrum plot confirms this: both peaks appear at the same frequencies regardless of the sampling rate.</p>
 </details>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li>The original signal contains exactly two tones, $440$ Hz and $880$ Hz, sampled at <code>fs_orig = 8000</code> Hz ($N = 8000$ samples for $T = 1$ s).</li>
+  <li>Each call to <code>resample(x, P, Q)</code> produces a signal at <code>fs_new = 8000*P/Q</code> Hz with about <code>length(x)*P/Q</code> samples: ≈4000 (P/Q=1/2), 16000 (2/1), ≈22050 (441/160), ≈44100 (441/80).</li>
+  <li>In the time-domain plots the waveform looks visually identical at every rate — only the sample spacing changes. <code>resample</code> handles the whole upsample → lowpass-filter → downsample chain internally, so no images or aliasing appear.</li>
+  <li>In the spectrum figure both peaks stay at $440$ Hz and $880$ Hz before and after the 2× upsampling. Upsampling raises the Nyquist limit (from $4000$ Hz to $8000$ Hz) but does <em>not</em> move the signal frequencies — resampling preserves content, it does not shift it.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

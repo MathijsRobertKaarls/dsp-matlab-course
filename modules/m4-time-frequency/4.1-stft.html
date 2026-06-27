@@ -189,6 +189,13 @@ title('Manual STFT of chirp'); colorbar;
   <p>In Part A, compare the three window sizes. N=64: poor frequency detail (thick chirp line), good time resolution. N=1024: thin, precise chirp line in frequency but smeared in time. N=256 is usually a good compromise. Part B should clearly show the jump from one horizontal line to another at t=1s.</p>
 </details>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li><strong>Part A — window length sweep.</strong> All three subplots show the chirp as a diagonal ridge climbing from <code>f_start = 100</code> Hz to <code>f_end = 1500</code> Hz over <code>T = 2</code> s. With <code>N=64</code> the bin spacing is coarse ($\Delta f = f_s/N = 4000/64 \approx 62.5$ Hz) so the ridge is <em>thick</em> in frequency but its onset/offset are sharply localized in time. With <code>N=1024</code> the bins are fine ($\Delta f = 4000/1024 \approx 3.9$ Hz) so the ridge is <em>thin and precise</em> in frequency but smeared in time. <code>N=256</code> ($\Delta f \approx 15.6$ Hz) is the visual compromise — a direct illustration of the Heisenberg–Gabor limit: you cannot sharpen both axes at once.</li>
+  <li><strong>Part B — non-stationary signal.</strong> The spectrogram shows a single horizontal line at <code>300</code> Hz for the first second, then a clean jump to a horizontal line at <code>800</code> Hz for the second second. The transition sits at <code>t = 1</code> s. A plain FFT of the whole signal would instead show two static peaks at 300 and 800 Hz with no indication of <em>when</em> each was active.</li>
+  <li><strong>Part C — manual STFT.</strong> With <code>N_win = 256</code> and <code>hop = 64</code> (75% overlap), <code>n_frames = floor((8000 - 256)/64) + 1 = 122</code> frames. The kept half-spectrum has <code>N_win/2 = 128</code> bins; the time axis <code>t_ax</code> spans 0 to about <code>(122-1)*64/4000 \approx 1.94</code> s and the frequency axis <code>f_ax</code> spans 0 to nearly $f_s/2 = 2000$ Hz. The resulting <code>imagesc</code> reproduces the same diagonal chirp ridge as the built-in <code>spectrogram</code> — confirming the STFT is just windowed FFTs stacked as columns.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

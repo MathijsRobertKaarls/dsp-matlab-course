@@ -170,6 +170,15 @@ fprintf('Without it, 1800Hz aliases to %.0f Hz.\n', abs(f2 - fs_new));
   <p>The key insight: 1800 Hz is above the new Nyquist (1000 Hz), so it aliases to |1800-2000| = 200 Hz. Without the anti-alias filter, both the true 200 Hz and the aliased 1800 Hz appear at 200 Hz in the decimated signal — you can't tell them apart! With anti-alias filtering, the 1800 Hz is removed before decimation, leaving only the clean 200 Hz component.</p>
 </details>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li>Downsampling by $M = 4$ takes <code>fs = 8000</code> Hz down to <code>fs_new = 2000</code> Hz, so the new Nyquist is $f_s/(2M) = 1000$ Hz. The $4000$-sample input becomes ≈$1000$ samples.</li>
+  <li>The $f_1 = 200$ Hz tone is below the new Nyquist and survives; the $f_2 = 1800$ Hz tone is above it and is the troublemaker.</li>
+  <li><code>x_wrong = downsample(x, M)</code> (no filter) aliases $1800$ Hz to $|f_2 - f_{s,new}| = |1800 - 2000| = 200$ Hz. The aliased spectrum shows a single inflated peak at $200$ Hz — the true $200$ Hz and the folded $1800$ Hz are now indistinguishable.</li>
+  <li>The correct path filters first: <code>b_aa = fir1(64, 1/M)</code> (cutoff at the new Nyquist $1000$ Hz, normalized $1/M$) removes the $1800$ Hz <em>before</em> <code>downsample</code>. The clean spectrum shows only the $200$ Hz component; <code>decimate(x, M)</code> gives the same result in one call.</li>
+  <li>The <code>fprintf</code> lines confirm: with the anti-alias filter the $1800$ Hz is removed; without it, $1800$ Hz aliases to $200$ Hz. This aliasing is permanent — filtering after downsampling cannot recover it.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

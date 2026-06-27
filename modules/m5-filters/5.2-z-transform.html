@@ -210,6 +210,14 @@ fprintf('  |p| = %.3f (should be < 1 for stability)\n', abs(roots(a_pz)));
   <p>In Part B, notice how poles close to the unit circle (r=0.95) produce a very sharp, resonant peak in the frequency response. At r=1.0, the pole is ON the unit circle — the system is marginally stable (not BIBO stable): its impulse response no longer decays. (A pole at z=+1 gives a non-decaying accumulator; a complex pole pair on the circle would oscillate forever.) Part C demonstrates direct pole-zero design: placing conjugate poles near the unit circle at the desired frequency creates a bandpass filter.</p>
 </details>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li><strong>Part A:</strong> <code>H(z) = 1/(1 - 0.9 z^{-1})</code> has a single pole at $z = 0.9$ (inside the unit circle → stable) and a zero at the origin. <code>zplane</code> shows the × at 0.9 on the real axis; the frequency response is lowpass-like, largest at DC because the pole sits near $z = +1$.</li>
+  <li><strong>Part B:</strong> poles at $r = 0.5, 0.8, 0.95$ are stable, and the DC peak grows sharper and taller as $r \to 1$. At $r = 1.0$ the pole is on the unit circle → the panel is marked "UNSTABLE / Diverges!" because the impulse response no longer decays.</li>
+  <li><strong>Part C:</strong> conjugate poles at $r = 0.95$ and angle $\omega_0 = 2\pi\cdot 100/1000$ produce a bandpass centered at 100 Hz. The printed pole magnitude is <code>|p| = 0.950</code> (&lt; 1 → stable).</li>
+  <li><strong>Hint question:</strong> poles near the unit circle give sharp resonant peaks; placing a conjugate pole pair near the unit circle at the target angle is a direct way to design a bandpass filter.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

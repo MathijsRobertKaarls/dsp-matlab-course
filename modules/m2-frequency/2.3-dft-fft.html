@@ -187,6 +187,13 @@ end
   <li>What is the DFT output at $k = 0$ ($X[0]$) for a zero-mean signal? Verify by setting <code>x = x - mean(x)</code> and checking <code>abs(X(1))</code>.</li>
 </ol>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li>$\Delta f = f_s/N = 1000/50 = 20$ Hz. Because 100 Hz is an exact multiple of 20 Hz, it lands precisely on bin $k = 100/20 = 5$, giving one clean spike with no leakage — so yes, you can locate it exactly. The caveat is resolution: with only 20 Hz spacing you could not separate 100 Hz from, say, 110 Hz.</li>
+  <li>The resolutions are $N=50 \to \Delta f = 20$ Hz, $N=200 \to 5$ Hz, $N=1000 \to 1$ Hz. Since 100 Hz stays on-bin for all three ($100/\Delta f$ is always an integer), every case shows a single clean spike. The peak is "narrow" already at $N=50$, but it gets sharper in absolute terms as $N$ grows because each bin is only $\Delta f$ Hz wide — at $N=1000$ ($\Delta f = 1$ Hz) the spike is as narrow and well-isolated as it gets.</li>
+  <li>$X[0] = \sum_{n} x[n] = N \cdot \text{mean}(x)$ (the DC component). For a zero-mean signal this is $0$, so after <code>x = x - mean(x)</code> you get <code>abs(X(1))</code> $\approx 0$ — on the order of <code>1e-13</code>, i.e. floating-point round-off rather than exactly zero.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

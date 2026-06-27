@@ -166,6 +166,13 @@ fprintf('SNR (%d measurements): %.1f dB\n', M, snr(s, avg/M - s));
   <li>What is the theoretical SNR improvement from M=1 to M=64? Compute: <code>10*log10(64)</code>.</li>
 </ol>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li>A 20 dB gain needs $10\log_{10}(M) = 20$, so <code>M = 100</code> averages. (Each extra 6 dB costs 4× more averages, so 20 dB requires 100×.)</li>
+  <li>Single-measurement SNR is $10\log_{10}\!\big(\tfrac{A^2/2}{\sigma^2}\big)$ with <code>A=1</code>. With <code>sigma=2</code> it is $10\log_{10}(0.5/4) \approx -9$ dB; with <code>sigma=0.5</code> it is $10\log_{10}(0.5/0.25) \approx +3$ dB — about 12 dB better, because cutting $\sigma$ by 4× raises power SNR by $20\log_{10}(4)\approx 12$ dB.</li>
+  <li><code>10*log10(64) = 18.06</code> dB $\approx 18$ dB — matching the red theoretical line and the hint (quadrupling M adds ~6 dB, and $64 = 4^3$ gives $3\times 6 = 18$ dB).</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

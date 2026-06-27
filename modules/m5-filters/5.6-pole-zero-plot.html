@@ -202,6 +202,14 @@ end
   <p>In Part C, watch how the peak at 100 Hz grows dramatically as the pole radius approaches 1.0. At r=0.7 you see a mild bump; at r=0.99 you see an extremely sharp, tall resonance peak (high Q). In Part B, the zeros ON the unit circle create exactly 0 gain (-∞ dB) at 60 Hz. The nearby poles ensure rapid recovery on either side.</p>
 </details>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li><strong>Part A:</strong> <code>butter(2,0.3,'low')</code> has zeros at $z = -1$ (null at Nyquist); <code>butter(4,0.5,'high')</code> has zeros at $z = +1$ (DC null); <code>butter(3,[0.2 0.5],'bandpass')</code> has zeros at both $z = \pm1$; <code>ellip(4,1,40,0.3,'low')</code> places zeros ON the unit circle in the stopband, producing the notches/ripple characteristic of elliptic filters. All four have poles strictly inside the circle → all are stable.</li>
+  <li><strong>Part B:</strong> zeros placed exactly on the unit circle at $\pm\omega_n$ give $-\infty$ dB (a perfect null) at 60 Hz; poles at <code>r_pole = 0.95</code> just inside at the same angle make the notch narrow, so the response recovers quickly on both sides. Stable.</li>
+  <li><strong>Part C:</strong> with poles at 100 Hz and <code>rs = [0.7 0.85 0.95 0.99]</code>, the resonance peak grows taller and sharper (higher Q) as $r \to 1$ — a mild bump at 0.7, an extremely tall sharp peak at 0.99.</li>
+  <li><strong>Hint question:</strong> distance from the unit circle controls sharpness — a zero on the circle is an exact null, and a pole approaching the circle is an ever-sharper resonance.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

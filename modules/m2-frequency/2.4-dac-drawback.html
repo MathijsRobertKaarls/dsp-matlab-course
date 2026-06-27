@@ -223,6 +223,13 @@ yline(-3.92, '--r', '-3.92 dB at Nyquist (f_s/2)'); grid on; xlim([0 fs/2]);
   <li>In high-quality audio DACs, oversampling (running the DAC at 128× the nominal rate) virtually eliminates ZOH droop. Why?</li>
 </ol>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li>At $f = f_s/4$, the argument is $f/f_s = 0.25$, so $\text{sinc}(0.25) = \sin(\pi/4)/(\pi/4) = 0.7071/0.7854 \approx 0.9003$. The attenuation is $20\log_{10}(0.9003) \approx -0.91$ dB — much gentler than the $-3.92$ dB at Nyquist, since the droop grows steeply only as you approach $f_s/2$.</li>
+  <li>The droop gets <strong>larger</strong>. Moving <code>f_hi</code> from 350 to 450 Hz moves it closer to Nyquist, and $\text{sinc}(f/f_s)$ decreases monotonically toward $f_s/2$: $\text{sinc}(0.35) \approx 0.810$ ($-1.83$ dB) versus $\text{sinc}(0.45) \approx 0.699$ ($-3.11$ dB). So the 450 Hz tone is attenuated noticeably more than the 350 Hz tone.</li>
+  <li>Oversampling at 128× raises the effective output rate to $128 f_s$, so the real signal band (e.g. up to 20 kHz of audio) occupies only the first $\approx 1/128$ of the sinc curve, where $\text{sinc}(f/(128 f_s)) \approx 1$ and the response is essentially flat. The first sinc null moves out to $128 f_s$, pushing all meaningful droop (and the spectral images) far above the audio band, where a gentle analog filter removes them. The residual in-band droop becomes negligible.</li>
+</ul>
+
 <div class="callout warning">
   <strong>⚠ Toolbox note</strong>
   <code>sinc()</code> requires the Signal Processing Toolbox. In base MATLAB, replace it with the inline definition <code>s = sin(pi*u)./(pi*u); s(u==0) = 1;</code> (the normalized sinc).

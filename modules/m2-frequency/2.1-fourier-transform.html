@@ -188,6 +188,13 @@ subplot(2,1,2); plot(f(1:N/2), angle(X1(1:N/2))); title('Phase (radians)'); xlab
   <li>Change <code>f1 = 50.5</code> (non-integer frequency relative to the FFT bins). What happens to the spectral peak? (This is a preview of spectral leakage, covered in Topic 3.3.)</li>
 </ol>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li>The bin spacing is $\Delta f = f_s/N = 1000/1024 \approx 0.977$ Hz. The 100 Hz tone falls at bin $k = f_1 N/f_s = 100 \cdot 1024/1000 = 102.4$ — not an exact integer — so the peak lands on the nearest bin, $k = 102$ (<code>X1(103)</code> in MATLAB's 1-based indexing), at $102 \cdot 0.977 \approx 99.6$ Hz. Within the $\approx 1$ Hz resolution this reads as "100 Hz," with normalized height $\approx 1.0$.</li>
+  <li>All three peaks are clearly visible near <code>50</code>, <code>120</code>, and <code>300</code> Hz with normalized heights close to $A_1=1.0$, $A_2=0.6$, $A_3=0.4$. None of the bins ($51.2$, $122.88$, $307.2$) are exact integers, so there is slight leakage and the read-off heights sit a few percent below the true amplitudes — the relative pattern $1.0 : 0.6 : 0.4$ still matches.</li>
+  <li>With <code>f1 = 50.5</code> the tone falls exactly between bins ($50.5 \cdot 1024/1000 = 51.7$). The energy spreads across neighbouring bins (spectral leakage): the single sharp spike becomes a lower, wider lobe with non-zero "skirts" instead of one clean line. This is the leakage effect detailed in Topic 3.3.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

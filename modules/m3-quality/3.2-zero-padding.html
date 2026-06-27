@@ -159,6 +159,13 @@ legend; xlim([60 160]);
   <p>In the first figure, all curves use the same N=64 samples with increasing zero-padding. The curves get smoother, but the two peaks only become distinguishable when N is large enough (true resolution ≤ frequency separation). In the second figure, even with the same zero-padding, a longer signal (larger N) reveals two distinct peaks.</p>
 </details>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li><strong>Figure 1 (fixed <code>N=64</code>, increasing padding <code>M = 64, 256, 1024, 4096</code>):</strong> every curve gets visibly smoother as $M$ grows, but the underlying shape never changes — all four trace the same DTFT. The two tones at <code>f1=100</code> and <code>f2=115</code> Hz are <em>not</em> separated, because their 15 Hz spacing is below the true resolution $\Delta f = f_s/N = 1000/64 \approx 15.6$ Hz. Zero-padding interpolates; it does not resolve.</li>
+  <li><strong>Figure 2 (fixed padding to 4096, increasing signal length <code>N = 32, 64, 128, 256</code>):</strong> resolution improves with real samples, $\Delta f = f_s/N$ = 31.3, 15.6, 7.8, 3.9 Hz. At <code>N=32</code> and <code>N=64</code> the peaks stay merged ($\Delta f \geq 15$ Hz); at <code>N=128</code> ($\Delta f\approx 7.8$ Hz) and <code>N=256</code> ($\Delta f\approx 3.9$ Hz) the 100 Hz and 115 Hz peaks become clearly distinct.</li>
+  <li><strong>Open question (hint-box):</strong> only a longer recording — more genuine signal samples — separates the two peaks. Adding zeros sharpens the look of the curve and helps pinpoint a single peak between bins, but the appended zeros carry no new information, so true resolution is unchanged.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

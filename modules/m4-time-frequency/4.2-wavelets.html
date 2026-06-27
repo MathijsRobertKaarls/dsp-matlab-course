@@ -192,6 +192,14 @@ end
   <p>The CWT scalogram shows frequency (y-axis) vs time (x-axis). The chirp appears as a diagonal line sweeping from low to high frequency. The denoised signal in Part C should closely follow the clean original — DWT denoising is very effective for smooth signals in noisy backgrounds.</p>
 </details>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li><strong>Part A — CWT of a chirp.</strong> The scalogram (frequency on the y-axis, time on the x-axis, with <code>fs = 1000</code>) shows the chirp as a diagonal ridge sweeping from <code>10</code> Hz up to <code>400</code> Hz across the <code>T = 2</code> s record. Note the adaptive tiling: the ridge is sharply localized in time at the high-frequency end but visibly broader (better frequency, coarser time resolution) at the low-frequency end — the multi-resolution behavior wavelets provide.</li>
+  <li><strong>Part B — frequency change.</strong> The CWT of <code>x_ns</code> shows energy concentrated near <code>50</code> Hz for the first second, then near <code>200</code> Hz for the second second, with the transition at <code>t = 1</code> s. The lower-frequency (50 Hz) component is better resolved in frequency, while the 200 Hz component is better localized in time — exactly the opposite of the STFT's uniform tiling.</li>
+  <li><strong>Part C — DWT denoising.</strong> A 5-level <code>db4</code> decomposition with soft thresholding (threshold $\text{thr} = \sigma\sqrt{2\ln N}$, where $\sigma$ is the MAD noise estimate from the finest detail band <code>cD1</code>) largely removes the <code>0.8*randn</code> noise. The reconstructed <code>x_denoised</code> closely tracks the clean <code>sin(2*pi*30*t)</code>; the reported RMS error (well below the noise standard deviation of 0.8, typically a few tenths) confirms effective denoising of this smooth low-frequency signal.</li>
+  <li><strong>Part D — coefficient visualization.</strong> Each subplot shows the detail coefficients for one level. Because of dyadic downsampling, each level covers an octave band <code>fs/2^(lvl+1)</code> to <code>fs/2^lvl</code>: Level 1 = 250–500 Hz, Level 2 = 125–250 Hz, Level 3 = 62.5–125 Hz, Level 4 = 31.25–62.5 Hz. The signal's 30 Hz tone (plus most surviving structure) appears as larger coefficients in the coarsest level (4), while the high-frequency noise dominates the finest level (1) — which is why thresholding the fine details cleans the signal.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

@@ -195,6 +195,13 @@ end
   <li>If $f_s = 1000$ Hz and you observe an unexpected peak at 200 Hz, what are the possible original frequencies that could have aliased to 200 Hz?</li>
 </ol>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li><code>f_signal = 500</code> is exactly the Nyquist frequency ($f_s/2$). For a <em>sine</em>, the samples are $\sin(2\pi \cdot 500 \cdot n/1000) = \sin(\pi n) = 0$ for every integer $n$ — the sampled signal <code>x_low</code> is all zeros, so the aliased spectrum is essentially empty (flat at $\approx 0$). The samples land exactly on the zero crossings. (A cosine at Nyquist would instead alternate $\pm 1$ and show a spike at 500 Hz — Nyquist is the ambiguous edge case.)</li>
+  <li><code>f_signal = 400</code> Hz is below Nyquist (500 Hz), so <strong>no aliasing</strong> occurs: the peak appears correctly at 400 Hz in the sampled spectrum, matching the true signal.</li>
+  <li>The aliasing map is $f_{alias} = |f - k f_s|$ with $f_s = 1000$. Solving $|f - 1000k| = 200$ gives $f = 1000k \pm 200$, i.e. the original could be <code>200</code> Hz (no alias), <code>800</code> Hz ($1000-800=200$), <code>1200</code> Hz ($1200-1000=200$), <code>1800</code> Hz, <code>2200</code> Hz, and so on — an infinite family spaced $f_s = 1000$ Hz apart. This ambiguity is exactly why aliasing is irreversible.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

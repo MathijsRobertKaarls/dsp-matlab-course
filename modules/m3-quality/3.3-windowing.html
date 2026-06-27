@@ -192,6 +192,13 @@ legend; xlim([0 150]); ylim([-80 5]); grid on;
   <li>Which window would you use if you need the best frequency <em>resolution</em> (not best sidelobe suppression)? Why?</li>
 </ol>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li>With <code>f1 = 100</code> Hz the bins sit at $f_s/N = 1000/256 \approx 3.9$ Hz, and $100/3.9 \approx 25.6$ is not an integer, so leakage persists. <strong>Blackman</strong> shows the least leakage (lowest sidelobes at $-58$ dB), keeping the −40 dB tone at 130 Hz clearly above the leakage floor; rectangular ($-13$ dB sidelobes) buries it.</li>
+  <li>With <code>A2 = 0.1</code> the weak tone is now only −20 dB down instead of −40 dB. It rises well above the rectangular window's leakage skirt, so <strong>yes</strong> — even the rectangular window now reveals a distinct 130 Hz peak. (At −40 dB it stayed hidden; the closer the weak tone is to the strong one's level, the easier any window detects it.)</li>
+  <li>Use the <strong>rectangular</strong> window for best frequency <em>resolution</em>: it has the narrowest main lobe, which is what separates two closely spaced peaks. The trade-off is its high $-13$ dB sidelobes (worst leakage) — lower-sidelobe windows (Hann/Blackman) widen the main lobe and so resolve less.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

@@ -207,6 +207,13 @@ fprintf('Max difference (should be ~0): %.2e\n', max(abs(y_combined - y_superpos
   <li>Why is the max difference in Part C essentially zero? What property of LTI systems does this confirm?</li>
 </ol>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li>With <code>M = 20</code> the filter averages over more samples, so noise is suppressed more strongly (smoother output). However the 50 Hz sine is also attenuated and lagged more — the signal gets more distorted as $M$ grows, illustrating the smoothing-vs-fidelity trade-off.</li>
+  <li>Full convolution length is $N_x + N_h - 1 = 1000 + 5 - 1 = 1004$, so <code>length(conv(x_noisy, h))</code> returns <code>1004</code>. (The <code>'same'</code> option used elsewhere instead trims this back to 1000.)</li>
+  <li>The max difference is essentially zero (only floating-point round-off, e.g. on the order of <code>1e-16</code>) because convolution is a <strong>linear</strong> operation: processing <code>a*x1 + b*x2</code> equals <code>a*(x1*h) + b*(x2*h)</code>. This confirms the superposition property of LTI systems.</li>
+</ul>
+
 <div class="callout success">
   <strong>✓ Module 1 Complete!</strong>
   You now have the foundational vocabulary of DSP: signals, sampling, periodicity, and LTI systems. Module 2 takes these concepts into the frequency domain with the Fourier Transform.

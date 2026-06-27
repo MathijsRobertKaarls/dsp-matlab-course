@@ -170,6 +170,14 @@ xline(fs/2, 'g--', 'original Nyquist');
   <p>The middle spectrum plot will show the original 100 Hz and 300 Hz peaks, PLUS their images at 900/700 Hz, 1900/1700 Hz etc. (images at fs-f and 2fs-f etc.). The bottom plot shows them removed. Note: <code>upsample(x, L)</code> in MATLAB inserts zeros; this is equivalent to zero-stuffing.</p>
 </details>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li>The original signal (<code>fs = 1000</code> Hz) has peaks at $f_0 = 100$ Hz and $3f_0 = 300$ Hz; both are below the original Nyquist of $500$ Hz.</li>
+  <li><code>upsample(x, 4)</code> inserts $L-1 = 3$ zeros between each sample, raising the rate to <code>fs_up = 4000</code> Hz and quadrupling the length. The zero-stuffed time plot is visibly discontinuous (samples interleaved with zeros).</li>
+  <li>The zero-stuffed spectrum keeps the $100$ Hz and $300$ Hz baseband peaks and adds $L-1 = 3$ spectral images. Within $[0, 2000]$ Hz the images of the $100$ Hz tone appear at $900$, $1100$, $1900$ Hz (at $f_s\!-\!f_0$, $f_s\!+\!f_0$, $2f_s\!-\!f_0$…) and the $300$ Hz tone at $700$, $1300$, $1700$ Hz — copies spaced about the multiples of $f_s/2 = 500$ Hz marked by the red dashed lines.</li>
+  <li>After the interpolation filter <code>b_interp = L*fir1(64, 1/L)</code> (cutoff at the original Nyquist $f_s/2 = 500$ Hz, i.e. normalized $1/L$, gain $L$) only the $100$ Hz and $300$ Hz baseband peaks survive; all images above $500$ Hz are removed and the time-domain signal becomes a smooth interpolated waveform at $4000$ Hz.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

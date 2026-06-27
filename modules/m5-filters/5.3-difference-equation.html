@@ -204,6 +204,14 @@ title('Impulse response h[n]');
   <p>The max difference between manual and built-in should be machine precision (~1e-15) — they compute exactly the same thing. In Part B, small α (0.1) barely smooths; large α (0.99) produces very heavy smoothing with slow response. The step response in Part C shows overshoot because this is a 2nd-order system.</p>
 </details>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li><strong>Part A:</strong> <code>butter(2, 100/(fs/2))</code> gives <code>b ≈ [0.0675  0.1349  0.0675]</code> and <code>a ≈ [1  −1.1430  0.4128]</code> (DC gain <code>sum(b)/sum(a) ≈ 1</code>, confirming the lowpass passes DC). The manual Direct-Form-I loop and <code>filter()</code> agree to machine precision — "Max difference" prints ~<code>1e-15</code> and the two curves overlap.</li>
+  <li><strong>Part B:</strong> exponential smoothing <code>y[n] = (1-α)x[n] + α y[n-1]</code> — at <code>α = 0.1</code> it barely smooths; at <code>α = 0.9</code> and <code>0.99</code> it smooths heavily with visible lag, because the single pole at $z = α$ moves toward the unit circle (narrower lowpass, slower response).</li>
+  <li><strong>Part C:</strong> the 2nd-order Butterworth step response rises with a slight overshoot before settling; <code>impz</code> shows a decaying impulse response, confirming the filter is stable.</li>
+  <li><strong>Hint question:</strong> manual and built-in differ only by floating-point rounding (~1e-15); larger α means heavier smoothing and slower response; the 2nd-order step response overshoots.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>

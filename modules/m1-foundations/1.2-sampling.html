@@ -235,6 +235,13 @@ end
   <li>For the 4-bit quantization case, how many distinct amplitude levels can you count in the plot?</li>
 </ol>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li>With <code>fs = 150 Hz</code> the Nyquist frequency is $f_s/2 = 75$ Hz. Since <code>f0 = 100 Hz</code> exceeds 75 Hz, the signal <strong>is aliased</strong> — it masquerades as a lower tone at $f_{alias} = |f_0 - f_s| = |100 - 150| = 50$ Hz in the <code>x_low</code> stem plot.</li>
+  <li>With <code>fs_low = 250 Hz</code> the Nyquist frequency rises to $125$ Hz $> 100$ Hz, so the Nyquist criterion $f_s \geq 2 f_0$ is met and the 100 Hz signal <strong>survives correctly</strong> (no aliasing).</li>
+  <li>4-bit quantization gives $2^4 = 16$ distinct amplitude levels (<code>levels = 16</code> in the code), so you can count up to 16 horizontal steps in the staircase.</li>
+</ul>
+
 <div class="callout warning">
   <strong>⚠ Toolbox note</strong>
   This exercise uses only base MATLAB functions. No toolboxes required.

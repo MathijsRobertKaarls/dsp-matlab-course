@@ -163,6 +163,14 @@ fprintf('  %-10s : %.5f\n', 'resample', rms(x_resamp - x_true));
   <code>interp1</code> (all methods) is base MATLAB. <code>rms()</code> and <code>resample()</code> require the Signal Processing Toolbox — in base MATLAB use <code>sqrt(mean(e.^2))</code> in place of <code>rms(e)</code>, and omit the <code>resample</code> line.
 </div>
 
+<h3>Expected outputs</h3>
+<ul>
+  <li><strong>RMS error ranking (best → worst):</strong> <code>resample</code> (sinc-like) ≈ <code>spline</code> &lt; <code>pchip</code> &lt; <code>linear</code> &lt; <code>nearest</code>. The smooth, bandlimited test signal (components at 15 Hz and 30 Hz, both below the low-rate Nyquist $f_s/2 = 50$ Hz) is exactly the case where curvature-aware methods win.</li>
+  <li><strong><code>nearest</code></strong> has by far the largest RMS error — its staircase output ignores curvature and misses every peak and trough between the coarse 100 Hz samples.</li>
+  <li><strong><code>spline</code> and <code>resample</code></strong> hug the dashed true signal almost perfectly, since the signal is bandlimited and properly sampled; <code>linear</code> sits visibly inside the curved peaks (chord-vs-arc error).</li>
+  <li><strong>Why both tones must stay below 50 Hz:</strong> if a component exceeded $f_s/2$, the <em>samples</em> <code>x_low</code> would already be aliased, and no interpolator could recover <code>x_true</code> — interpolation never restores information that was never sampled.</li>
+</ul>
+
 <div class="takeaways">
   <h3>Key Takeaways</h3>
   <ul>
