@@ -1,0 +1,190 @@
+<h1>7.4 — MATLAB Lifehacks &amp; Tips</h1>
+<p class="topic-meta">Module 7 · Reference &amp; Summary · ~20 min</p>
+
+<h2>Introduction</h2>
+<p>The course taught the DSP. This page collects the practical MATLAB craft that makes the DSP painless: idioms, gotchas, and habits that save hours. These are the things experienced users do automatically — copy them into your muscle memory.</p>
+
+<h2>1 · Vectorize — Avoid Loops</h2>
+<p>MATLAB is fastest when you operate on whole arrays. A loop that builds a sine sample-by-sample is both slower and harder to read than the vectorized form.</p>
+<pre><code class="language-matlab">% Slow, un-MATLAB-like
+for n = 1:N
+  x(n) = sin(2*pi*f*(n-1)/fs);
+end
+
+% Fast, idiomatic — element-wise operators (.* ./ .^)
+t = (0:N-1)/fs;        % row vector of times
+x = sin(2*pi*f*t);     % whole signal at once</code></pre>
+<div class="callout warning">
+  <strong>The dot matters:</strong> <code>*</code> <code>/</code> <code>^</code> are matrix operations; <code>.*</code> <code>./</code> <code>.^</code> are element-wise. For signals you almost always want the dotted versions. <code>a.*b</code> multiplies sample-by-sample; <code>a*b</code> tries a matrix product and usually errors.
+</div>
+
+<h2>2 · Preallocate When You Must Loop</h2>
+<p>If a loop is unavoidable (e.g. a real-time filter, an iterative algorithm), preallocate the output so MATLAB doesn't resize the array every iteration.</p>
+<pre><code class="language-matlab">y = zeros(1, N);          % preallocate — not y = []
+for n = 1:N
+  y(n) = someRecursion(n);
+end</code></pre>
+
+<h2>3 · Build Frequency &amp; Time Axes Correctly</h2>
+<p>The single most common beginner bug is a mislabelled axis. Memorize these two lines:</p>
+<pre><code class="language-matlab">t = (0:N-1)/fs;            % time axis (seconds), length N
+f = (0:N-1)*(fs/N);       % full DFT frequency axis (Hz), length N
+% one-sided axis for a real signal:
+f1 = (0:floor(N/2)) * fs/N;</code></pre>
+<div class="callout">
+  <strong>Why <code>(0:N-1)</code> and not <code>(1:N)</code>?</strong> DSP is 0-indexed in theory ($x[0]$ is the first sample) but MATLAB arrays are 1-indexed (<code>x(1)</code> is the first sample). Keep the math 0-based for axes, but index arrays from 1. Off-by-one here shifts your whole frequency axis.
+</div>
+
+<h2>4 · Normalized Frequencies in Filter Design</h2>
+<p>Filter functions take cutoff frequencies normalized to <strong>Nyquist</strong> ($f_s/2$), not to $f_s$. This trips up nearly everyone.</p>
+<pre><code class="language-matlab">fs = 1000;  Fc = 100;        % want 100 Hz cutoff
+Wn = Fc / (fs/2);            % = 0.2  (normalized to Nyquist)
+[b,a] = butter(4, Wn, 'low');</code></pre>
+<p class="topic-meta">For a bandpass: <code>Wn = [f_lo f_hi]/(fs/2)</code>. A value of 1.0 means Nyquist; values must be strictly between 0 and 1.</p>
+
+<h2>5 · Reproducible Randomness</h2>
+<p>Seed the generator so your noisy experiments are repeatable — essential when comparing two methods.</p>
+<pre><code class="language-matlab">rng(42);                  % fixed seed → same randn() every run
+x = signal + 0.5*randn(size(signal));</code></pre>
+
+<h2>6 · freqz Without Arguments Hijacks Your Figure</h2>
+<p>Calling <code>freqz(b,a)</code> with no output arguments builds its <em>own</em> two-panel figure and will clobber any subplot grid you set up. To plot inside your own layout, capture the outputs:</p>
+<pre><code class="language-matlab">[H,f] = freqz(b, a, 1024, fs);   % capture, don't auto-plot
+subplot(2,1,1);
+plot(f, 20*log10(abs(H)));       % your own magnitude panel
+grid on; xlabel('Hz'); ylabel('dB');</code></pre>
+
+<h2>7 · Two-Sided vs One-Sided Spectra</h2>
+<p>The FFT returns a two-sided spectrum (0 → fs). For a real signal the upper half mirrors the lower, so a one-sided plot doubles the interior bins to conserve energy:</p>
+<pre><code class="language-matlab">X  = fft(x);
+P2 = abs(X)/N;
+P1 = P2(1:floor(N/2)+1);
+P1(2:end-1) = 2*P1(2:end-1);    % double all but DC and Nyquist
+f  = (0:floor(N/2))*fs/N;
+plot(f, P1);</code></pre>
+<div class="callout warning">
+  <strong>Don't double DC or Nyquist:</strong> bin 0 (DC) and bin N/2 (Nyquist, when N is even) have no mirror partner — doubling them inflates their amplitude. That's why the slice is <code>2:end-1</code>.
+</div>
+
+<h2>8 · Power-of-Two FFT Lengths</h2>
+<p>FFTs are fastest when the length is a power of 2. Pad up with <code>nextpow2</code>:</p>
+<pre><code class="language-matlab">M = 2^nextpow2(N);     % next power of two ≥ N
+X = fft(x, M);         % zero-pads to M automatically</code></pre>
+
+<h2>9 · Inspect, Don't Guess</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Command</th><th style="text-align:left;padding:0.4rem 0.6rem">Use it to</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>size(x)</code>, <code>length(x)</code>, <code>numel(x)</code></td><td style="padding:0.4rem 0.6rem">Check dimensions — row vs column vectors cause silent broadcasting bugs.</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>whos</code></td><td style="padding:0.4rem 0.6rem">List variables with size, bytes, and class.</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>x(:)</code></td><td style="padding:0.4rem 0.6rem">Force a column vector regardless of original shape.</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>isreal(x)</code>, <code>any(isnan(x))</code></td><td style="padding:0.4rem 0.6rem">Catch stray complex values or NaNs early.</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><code>format long</code></td><td style="padding:0.4rem 0.6rem">See full precision when debugging numerical issues.</td></tr>
+</table>
+
+<h2>10 · Row vs Column Vectors</h2>
+<p>Since R2016b, MATLAB broadcasts mismatched shapes silently — a row times a column gives a matrix, not an error. This produces gigantic arrays and wrong results.</p>
+<pre><code class="language-matlab">r = 1:5;        % 1×5 row
+c = (1:5)';     % 5×1 column
+r .* c          % ⚠ 5×5 matrix via broadcasting — probably NOT what you want!
+r .* r          % ✓ 1×5, correct</code></pre>
+<p class="topic-meta">Habit: keep signals as consistent row (or consistent column) vectors. Use <code>x(:)'</code> to force a row.</p>
+
+<h2>11 · Plotting Niceties</h2>
+<pre><code class="language-matlab">grid on;                       % always — easier to read values
+xlabel('Frequency (Hz)'); ylabel('Magnitude (dB)');
+title('My spectrum');
+legend('FIR','IIR','Location','best');
+xlim([0 fs/2]); ylim([-80 5]);
+yline(-3,'k--','-3 dB');       % reference lines
+xline(Fc,'r--','f_c');
+hold on;  % overlay multiple curves; remember hold off afterwards</code></pre>
+<div class="callout">
+  <strong>dB without −Inf warnings:</strong> <code>20*log10(abs(H))</code> hits <code>-Inf</code> where <code>H</code> is exactly 0 (e.g. an FIR null). Add a tiny floor: <code>20*log10(abs(H)+eps)</code>.
+</div>
+
+<h2>12 · Speed &amp; Sanity Tools</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Tool</th><th style="text-align:left;padding:0.4rem 0.6rem">What it gives you</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>tic / toc</code></td><td style="padding:0.4rem 0.6rem">Quick wall-clock timing of a block.</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>timeit(@() fn(x))</code></td><td style="padding:0.4rem 0.6rem">Robust averaged benchmark of a function.</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>profile on / viewer</code></td><td style="padding:0.4rem 0.6rem">Line-by-line profiler to find the slow part.</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>dbstop if error</code></td><td style="padding:0.4rem 0.6rem">Drop into the debugger at the moment of an error.</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>ver</code> / <code>license('test',...)</code></td><td style="padding:0.4rem 0.6rem">Confirm which toolboxes you actually have.</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><code>help fn</code> / <code>doc fn</code></td><td style="padding:0.4rem 0.6rem">Inline help / full documentation for any function.</td></tr>
+</table>
+
+<h2>13 · No Toolbox? Base-MATLAB Fallbacks</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Toolbox function</th><th style="text-align:left;padding:0.4rem 0.6rem">Base-MATLAB workaround</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>hann(N)</code></td><td style="padding:0.4rem 0.6rem"><code>0.5*(1-cos(2*pi*(0:N-1)'/(N-1)))</code></td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>filtfilt</code> (zero-phase)</td><td style="padding:0.4rem 0.6rem"><code>fliplr(filter(b,a,fliplr(filter(b,a,x))))</code> (approx., no edge handling)</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>freqz</code></td><td style="padding:0.4rem 0.6rem"><code>H = fft(b,Nfft)./fft(a,Nfft)</code>, then <code>abs</code>/<code>angle</code></td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>upsample(x,L)</code></td><td style="padding:0.4rem 0.6rem"><code>y=zeros(1,L*numel(x)); y(1:L:end)=x;</code></td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><code>downsample(x,M)</code></td><td style="padding:0.4rem 0.6rem"><code>x(1:M:end)</code></td></tr>
+</table>
+
+<h2>14 · Save &amp; Share Your Work</h2>
+<pre><code class="language-matlab">save('results.mat','x','b','a');     % save variables
+load('results.mat');                  % bring them back
+exportgraphics(gcf,'fig.png','Resolution',300);   % publication-quality figure
+audiowrite('out.wav', y/max(abs(y)), fs);          % normalize before writing audio</code></pre>
+
+<h2>Quick Self-Check</h2>
+
+<div class="quiz-block" data-explanation="Filter design functions normalize the cutoff to the Nyquist frequency fs/2, not fs. So a 100 Hz cutoff at fs=1000 is Wn = 100/(1000/2) = 0.2.">
+  <h3>Q1. For <code>butter</code> with <code>fs = 1000</code> and a 100 Hz cutoff, <code>Wn</code> should be:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">100</li>
+    <li class="quiz-option" data-correct="false">0.1</li>
+    <li class="quiz-option" data-correct="true">0.2</li>
+    <li class="quiz-option" data-correct="false">0.628</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="In a one-sided amplitude spectrum you double every bin EXCEPT DC (bin 0) and Nyquist (bin N/2), because those have no mirror-image partner to fold in.">
+  <h3>Q2. When forming a one-sided spectrum, which bins are NOT doubled?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">Every odd-numbered bin</li>
+    <li class="quiz-option" data-correct="true">DC (bin 0) and Nyquist (bin N/2)</li>
+    <li class="quiz-option" data-correct="false">The last bin only</li>
+    <li class="quiz-option" data-correct="false">All of them are doubled</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="r .* c with r a row and c a column triggers implicit broadcasting and produces a 5×5 matrix — a classic silent bug. Keeping signals as consistently shaped vectors avoids it.">
+  <h3>Q3. Multiplying a 1×5 row by a 5×1 column with <code>.*</code> gives:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">An error</li>
+    <li class="quiz-option" data-correct="false">A 1×5 row</li>
+    <li class="quiz-option" data-correct="true">A 5×5 matrix (implicit broadcasting)</li>
+    <li class="quiz-option" data-correct="false">A single scalar</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Vectorize with <code>.*</code>/<code>./</code>/<code>.^</code>; preallocate when you must loop.</li>
+    <li>Normalize filter cutoffs to Nyquist (<code>Fc/(fs/2)</code>); build axes from <code>(0:N-1)</code>.</li>
+    <li>Capture <code>freqz</code> outputs to control your own plots; double only interior bins for one-sided spectra.</li>
+    <li>Watch row-vs-column broadcasting; seed <code>rng</code> for reproducibility; check toolboxes with <code>ver</code>.</li>
+  </ul>
+</div>
+
+<div class="callout success">
+  <strong>✓ Reference Module Complete — and that's the whole course!</strong> You now have the meanings (7.1), the equations (7.2), the functions (7.3), and the craft (7.4) all in one place. Bookmark Module 7 as your go-to DSP-with-MATLAB cheat sheet.
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m7-reference/7.3-matlab-functions'); return false;">← 7.3 MATLAB Function Reference</a>
+  <a href="#" onclick="document.getElementById('welcome').style.display='block'; document.getElementById('topic-content').style.display='none'; return false;">↑ Back to Course Home</a>
+</div>

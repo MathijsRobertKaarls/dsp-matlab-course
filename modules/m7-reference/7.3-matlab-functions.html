@@ -1,0 +1,168 @@
+<h1>7.3 — MATLAB Function Reference</h1>
+<p class="topic-meta">Module 7 · Reference &amp; Summary · ~20 min</p>
+
+<h2>Introduction</h2>
+<p>A categorized cheat-sheet of every MATLAB function used in the course, plus a few close relatives you'll reach for constantly. Each entry gives the calling syntax, what it does, and which topic uses it. Functions that need a toolbox are flagged.</p>
+
+<div class="callout warning">
+  <strong>Toolbox flags:</strong> <span style="color:var(--accent)">[SPT]</span> = Signal Processing Toolbox · <span style="color:var(--accent)">[WT]</span> = Wavelet Toolbox · everything else is base MATLAB. Check what you have with <code>ver</code> or <code>license('test','Signal_Toolbox')</code>.
+</div>
+
+<h2>1 · Signal Generation &amp; Basics</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Function</th><th style="text-align:left;padding:0.4rem 0.6rem">What it does</th><th style="text-align:left;padding:0.4rem 0.6rem">Topic</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>t = 0:1/fs:T-1/fs</code></td><td style="padding:0.4rem 0.6rem">Build a time vector at rate <code>fs</code> (note the <code>-1/fs</code> to avoid a duplicate endpoint).</td><td style="padding:0.4rem 0.6rem">1.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>linspace(a,b,N)</code></td><td style="padding:0.4rem 0.6rem">N evenly spaced points from a to b (endpoint included).</td><td style="padding:0.4rem 0.6rem">1.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>sin / cos</code></td><td style="padding:0.4rem 0.6rem">Generate tones: <code>sin(2*pi*f*t)</code>.</td><td style="padding:0.4rem 0.6rem">1.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>randn(size(t))</code></td><td style="padding:0.4rem 0.6rem">Gaussian white noise (mean 0, var 1) — model measurement noise.</td><td style="padding:0.4rem 0.6rem">3.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>chirp(t,f0,t1,f1)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Swept-frequency tone — perfect test signal for STFT/spectrogram.</td><td style="padding:0.4rem 0.6rem">4.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>square / sawtooth</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Periodic non-sinusoidal test signals.</td><td style="padding:0.4rem 0.6rem">1.3</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><code>stem / plot</code></td><td style="padding:0.4rem 0.6rem">Discrete (lollipop) vs continuous line plot — use <code>stem</code> for sampled data.</td><td style="padding:0.4rem 0.6rem">1.2</td></tr>
+</table>
+
+<h2>2 · Fourier / Spectral Analysis</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Function</th><th style="text-align:left;padding:0.4rem 0.6rem">What it does</th><th style="text-align:left;padding:0.4rem 0.6rem">Topic</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>fft(x)</code> / <code>fft(x,M)</code></td><td style="padding:0.4rem 0.6rem">DFT of <code>x</code>; the optional <code>M</code> zero-pads (or truncates) to length M.</td><td style="padding:0.4rem 0.6rem">2.3, 3.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>ifft(X)</code></td><td style="padding:0.4rem 0.6rem">Inverse FFT — back to the time domain.</td><td style="padding:0.4rem 0.6rem">2.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>abs(X)</code> / <code>angle(X)</code></td><td style="padding:0.4rem 0.6rem">Magnitude and phase of complex spectrum.</td><td style="padding:0.4rem 0.6rem">2.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>fftshift(X)</code></td><td style="padding:0.4rem 0.6rem">Shift zero frequency to the centre for a two-sided plot.</td><td style="padding:0.4rem 0.6rem">2.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>unwrap(phase)</code></td><td style="padding:0.4rem 0.6rem">Remove $2\pi$ jumps so phase plots are continuous.</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>pwelch(x,...)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Welch power spectral density — averaged, lower-variance spectrum estimate.</td><td style="padding:0.4rem 0.6rem">3.1</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><code>periodogram(x,...)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Single-record PSD estimate.</td><td style="padding:0.4rem 0.6rem">3.1</td></tr>
+</table>
+
+<div class="callout">
+  <strong>Canonical one-sided amplitude spectrum</strong> (memorize this block):
+  <pre><code class="language-matlab">N  = length(x);
+X  = fft(x);
+P2 = abs(X)/N;            % two-sided, normalized
+P1 = P2(1:floor(N/2)+1);  % one-sided
+P1(2:end-1) = 2*P1(2:end-1);   % double interior bins
+f  = (0:floor(N/2)) * fs/N;    % frequency axis (Hz)
+plot(f, P1);</code></pre>
+</div>
+
+<h2>3 · Windows</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Function</th><th style="text-align:left;padding:0.4rem 0.6rem">What it does</th><th style="text-align:left;padding:0.4rem 0.6rem">Topic</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>hann(N)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Hann (raised-cosine) window — good general default.</td><td style="padding:0.4rem 0.6rem">3.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>hamming(N)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Hamming window — lower first side lobe than Hann.</td><td style="padding:0.4rem 0.6rem">3.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>blackman(N)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Very low side lobes, wider main lobe (worse resolution).</td><td style="padding:0.4rem 0.6rem">3.3</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><code>kaiser(N,beta)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Adjustable window — <code>beta</code> tunes the resolution/leakage trade-off.</td><td style="padding:0.4rem 0.6rem">3.3</td></tr>
+</table>
+
+<h2>4 · Filter Design</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Function</th><th style="text-align:left;padding:0.4rem 0.6rem">What it does</th><th style="text-align:left;padding:0.4rem 0.6rem">Topic</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>fir1(N,Wn,type)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Window-method FIR design. <code>Wn</code> normalized to Nyquist (0–1). <code>type</code> = 'low'/'high'/'bandpass'/'stop'.</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>firpm(N,f,a)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Parks–McClellan equiripple FIR (optimal for a given order).</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>butter(N,Wn,type)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Butterworth IIR (maximally flat passband). Returns <code>[b,a]</code>.</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>cheby1 / cheby2</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Chebyshev IIR — ripple in pass- (1) or stop-band (2), steeper than Butterworth.</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>ellip(N,Rp,Rs,Wn)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Elliptic IIR — ripple in both bands, steepest roll-off for the order.</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>iirnotch(Wo,BW)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Design a narrow notch (e.g. 50/60 Hz hum removal).</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><code>designfilt(...)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Spec-driven modern designer (pass specs, get a <code>digitalFilter</code> object).</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+</table>
+
+<h2>5 · Applying &amp; Analysing Filters</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Function</th><th style="text-align:left;padding:0.4rem 0.6rem">What it does</th><th style="text-align:left;padding:0.4rem 0.6rem">Topic</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>filter(b,a,x)</code></td><td style="padding:0.4rem 0.6rem">Causal, real-time filtering (introduces phase shift). Base MATLAB.</td><td style="padding:0.4rem 0.6rem">5.1, 5.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>filtfilt(b,a,x)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Zero-phase filtering (forward + backward) — offline only, no phase distortion.</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>conv(x,h)</code></td><td style="padding:0.4rem 0.6rem">Convolution — equivalent to FIR filtering (<code>filter(h,1,x)</code> for the causal part).</td><td style="padding:0.4rem 0.6rem">1.4</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>freqz(b,a,N,fs)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Frequency response (Bode). With no outputs it auto-plots magnitude + phase.</td><td style="padding:0.4rem 0.6rem">5.1, 5.5</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>impz(b,a)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Impulse response of the filter.</td><td style="padding:0.4rem 0.6rem">1.4, 5.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>grpdelay(b,a)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Group delay vs frequency.</td><td style="padding:0.4rem 0.6rem">5.5</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>zplane(b,a)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Pole/zero plot with the unit circle.</td><td style="padding:0.4rem 0.6rem">5.6</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>tf2zp / zp2tf</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Convert between transfer-function coefficients and zero/pole/gain.</td><td style="padding:0.4rem 0.6rem">5.6</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>roots(p)</code></td><td style="padding:0.4rem 0.6rem">Roots of a polynomial — find poles/zeros from <code>a</code>/<code>b</code>. Base MATLAB.</td><td style="padding:0.4rem 0.6rem">5.6</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><code>isstable(b,a)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">True if all poles are inside the unit circle.</td><td style="padding:0.4rem 0.6rem">5.6</td></tr>
+</table>
+
+<h2>6 · Time–Frequency</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Function</th><th style="text-align:left;padding:0.4rem 0.6rem">What it does</th><th style="text-align:left;padding:0.4rem 0.6rem">Topic</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>spectrogram(x,win,ov,nfft,fs)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">STFT magnitude as a time–frequency image.</td><td style="padding:0.4rem 0.6rem">4.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>stft / istft</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Forward/inverse short-time Fourier transform (complex output).</td><td style="padding:0.4rem 0.6rem">4.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>cwt(x,...)</code> <span style="color:var(--accent)">[WT]</span></td><td style="padding:0.4rem 0.6rem">Continuous wavelet transform / scalogram.</td><td style="padding:0.4rem 0.6rem">4.2</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><code>dwt / wavedec</code> <span style="color:var(--accent)">[WT]</span></td><td style="padding:0.4rem 0.6rem">Discrete wavelet decomposition (multi-level).</td><td style="padding:0.4rem 0.6rem">4.2</td></tr>
+</table>
+
+<h2>7 · Resampling &amp; Interpolation</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Function</th><th style="text-align:left;padding:0.4rem 0.6rem">What it does</th><th style="text-align:left;padding:0.4rem 0.6rem">Topic</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>upsample(x,L)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Zero-stuff: insert L−1 zeros between samples (no filtering).</td><td style="padding:0.4rem 0.6rem">6.2, 6.4</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>downsample(x,M)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Keep every M-th sample (no anti-alias filter — beware!).</td><td style="padding:0.4rem 0.6rem">6.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>interp(x,L)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Upsample + built-in lowpass = proper interpolation by L.</td><td style="padding:0.4rem 0.6rem">6.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>decimate(x,M)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Lowpass + downsample = proper decimation by M.</td><td style="padding:0.4rem 0.6rem">6.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><code>resample(x,L,M)</code> <span style="color:var(--accent)">[SPT]</span></td><td style="padding:0.4rem 0.6rem">Rational rate change by L/M with anti-alias filtering (one-stop shop).</td><td style="padding:0.4rem 0.6rem">6.1</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><code>interp1(x,v,xq,method)</code></td><td style="padding:0.4rem 0.6rem">General 1-D interpolation ('linear','spline','pchip'). Base MATLAB.</td><td style="padding:0.4rem 0.6rem">3.4</td></tr>
+</table>
+
+<div class="callout">
+  <strong>Mapping operations to the right call:</strong> "make the rate higher correctly" → <code>interp</code>/<code>resample</code>, not bare <code>upsample</code>. "make it lower correctly" → <code>decimate</code>/<code>resample</code>, not bare <code>downsample</code>. The bare functions only do the zero-stuffing/sample-dropping step and leave you to add the filter.
+</div>
+
+<h2>Quick Self-Check</h2>
+
+<div class="quiz-block" data-explanation="filtfilt runs the filter forward then backward, cancelling the phase response — zero phase distortion — but it needs the entire signal in memory, so it is offline-only. filter() is the causal, real-time choice.">
+  <h3>Q1. You need zero phase distortion on an already-recorded signal. Use:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false"><code>filter(b,a,x)</code></li>
+    <li class="quiz-option" data-correct="true"><code>filtfilt(b,a,x)</code></li>
+    <li class="quiz-option" data-correct="false"><code>conv(x,b)</code></li>
+    <li class="quiz-option" data-correct="false"><code>fft(x)</code></li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="decimate lowpass-filters before dropping samples, preventing aliasing. Bare downsample just keeps every M-th sample and will alias any content above the new Nyquist.">
+  <h3>Q2. To safely reduce the sample rate by 4 without aliasing, prefer:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false"><code>downsample(x,4)</code></li>
+    <li class="quiz-option" data-correct="true"><code>decimate(x,4)</code> (or <code>resample</code>)</li>
+    <li class="quiz-option" data-correct="false"><code>upsample(x,4)</code></li>
+    <li class="quiz-option" data-correct="false"><code>fft(x,4)</code></li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="zplane draws the poles (×) and zeros (○) together with the unit circle, the standard tool for checking stability and shaping a filter.">
+  <h3>Q3. Which function visualizes poles, zeros, and the unit circle?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false"><code>freqz</code></li>
+    <li class="quiz-option" data-correct="false"><code>spectrogram</code></li>
+    <li class="quiz-option" data-correct="true"><code>zplane</code></li>
+    <li class="quiz-option" data-correct="false"><code>pwelch</code></li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Spectra: <code>fft</code> → <code>abs</code>/<code>angle</code> → one-sided scaling; estimate power with <code>pwelch</code>.</li>
+    <li>Design FIR with <code>fir1</code>/<code>firpm</code>, IIR with <code>butter</code>/<code>cheby1</code>/<code>ellip</code>; analyse with <code>freqz</code>/<code>zplane</code>/<code>grpdelay</code>.</li>
+    <li>Apply with <code>filter</code> (real-time) or <code>filtfilt</code> (zero-phase, offline).</li>
+    <li>Resample correctly with <code>interp</code>/<code>decimate</code>/<code>resample</code> — the bare <code>upsample</code>/<code>downsample</code> skip the filter.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m7-reference/7.2-equation-sheet'); return false;">← 7.2 Master Equation Sheet</a>
+  <a href="#" onclick="loadTopic('m7-reference/7.4-matlab-lifehacks'); return false;">Next: 7.4 MATLAB Lifehacks &amp; Tips →</a>
+</div>

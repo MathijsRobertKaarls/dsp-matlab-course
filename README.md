@@ -22,7 +22,7 @@ Then open **http://localhost:8080** in your browser.
 
 ## 📘 What's Inside
 
-25 fully written topic pages across 6 modules, each following a consistent template:
+29 fully written topic pages across 7 modules, each following a consistent template:
 
 1. Plain-English introduction (ELI5 first)
 2. Core concept with analogies
@@ -43,6 +43,7 @@ Then open **http://localhost:8080** in your browser.
 | **4 — Time-Frequency** | 4.1–4.2 | STFT & Spectrogram, Wavelets (CWT & DWT) |
 | **5 — Filter Design** | 5.1–5.6 | FIR/IIR Design, Z-Transform, Difference Equations, Block Diagrams, Bode Plots, Pole-Zero |
 | **6 — Resampling** | 6.1–6.5 | Rational Resampling, Upsampling, Downsampling, Zero Stuffing, Zero Padding |
+| **7 — Reference & Summary** | 7.1–7.4 | Glossary of Terms, Master Equation Sheet, MATLAB Function Reference, MATLAB Lifehacks |
 
 ---
 

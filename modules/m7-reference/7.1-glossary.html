@@ -1,0 +1,181 @@
+<h1>7.1 — Glossary of Terms &amp; Concepts</h1>
+<p class="topic-meta">Module 7 · Reference &amp; Summary · ~20 min</p>
+
+<h2>Introduction</h2>
+<p>This is the master glossary for the whole course. Every key term, name, and concept from Modules 1–6 is collected here with a plain-language meaning and a pointer back to the topic where it lives. Use it as a quick lookup while you work, or read it top-to-bottom as a final review. Terms are grouped by theme; within each group they roughly follow the order you met them.</p>
+
+<div class="callout">
+  <strong>How to use this page:</strong> skim the bold term, read the one-line meaning, and follow the "see" link if you need the full story. The companion pages <strong>7.2</strong> (equations), <strong>7.3</strong> (MATLAB functions), and <strong>7.4</strong> (lifehacks) cover the math, code, and tricks.
+</div>
+
+<h2>1 · Sampling &amp; Signals</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.88rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Term</th>
+    <th style="text-align:left;padding:0.4rem 0.6rem">Meaning</th>
+    <th style="text-align:left;padding:0.4rem 0.6rem">See</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>DSP</strong></td><td style="padding:0.4rem 0.6rem">Digital Signal Processing — analysing and modifying signals after they have been sampled into numbers.</td><td style="padding:0.4rem 0.6rem">1.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>ADC</strong></td><td style="padding:0.4rem 0.6rem">Analog-to-Digital Converter — turns a continuous voltage into discrete samples (sample + quantize).</td><td style="padding:0.4rem 0.6rem">1.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>DAC</strong></td><td style="padding:0.4rem 0.6rem">Digital-to-Analog Converter — reconstructs a continuous signal from samples (typically a zero-order hold).</td><td style="padding:0.4rem 0.6rem">1.2, 2.4</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Sampling</strong></td><td style="padding:0.4rem 0.6rem">Measuring a signal at regular time intervals $T_s = 1/f_s$.</td><td style="padding:0.4rem 0.6rem">1.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Sampling rate $f_s$</strong></td><td style="padding:0.4rem 0.6rem">Number of samples taken per second (Hz). $T_s = 1/f_s$ is the sample period.</td><td style="padding:0.4rem 0.6rem">1.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Nyquist frequency</strong></td><td style="padding:0.4rem 0.6rem">Half the sample rate, $f_s/2$. The highest frequency that can be represented without aliasing.</td><td style="padding:0.4rem 0.6rem">1.2, 2.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Nyquist–Shannon theorem</strong></td><td style="padding:0.4rem 0.6rem">To capture a signal exactly, sample at more than twice its highest frequency ($f_s &gt; 2 f_{max}$).</td><td style="padding:0.4rem 0.6rem">1.2, 2.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Quantization</strong></td><td style="padding:0.4rem 0.6rem">Rounding each sample to the nearest level the ADC can store; introduces quantization noise.</td><td style="padding:0.4rem 0.6rem">1.2, 3.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Stationary signal</strong></td><td style="padding:0.4rem 0.6rem">A signal whose statistics (mean, variance, spectral content) don't change over time.</td><td style="padding:0.4rem 0.6rem">1.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Periodic signal</strong></td><td style="padding:0.4rem 0.6rem">Repeats exactly every period $T$: $x(t) = x(t+T)$.</td><td style="padding:0.4rem 0.6rem">1.3</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><strong>Quasi-stationary</strong></td><td style="padding:0.4rem 0.6rem">Approximately stationary over a short window — the assumption behind the STFT.</td><td style="padding:0.4rem 0.6rem">1.3, 4.1</td></tr>
+</table>
+
+<h2>2 · Systems</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.88rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Term</th><th style="text-align:left;padding:0.4rem 0.6rem">Meaning</th><th style="text-align:left;padding:0.4rem 0.6rem">See</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>System</strong></td><td style="padding:0.4rem 0.6rem">Anything that maps an input signal to an output signal.</td><td style="padding:0.4rem 0.6rem">1.4</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Linear</strong></td><td style="padding:0.4rem 0.6rem">Obeys superposition: scaling and adding inputs scales and adds outputs.</td><td style="padding:0.4rem 0.6rem">1.4</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Time-invariant</strong></td><td style="padding:0.4rem 0.6rem">Behaviour doesn't change over time — a delayed input gives an equally delayed output.</td><td style="padding:0.4rem 0.6rem">1.4</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>LTI system</strong></td><td style="padding:0.4rem 0.6rem">Linear &amp; Time-Invariant — fully described by its impulse response; the foundation of filter theory.</td><td style="padding:0.4rem 0.6rem">1.4</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Causal</strong></td><td style="padding:0.4rem 0.6rem">Output depends only on present and past inputs — required for real-time processing.</td><td style="padding:0.4rem 0.6rem">1.4</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Impulse response $h[n]$</strong></td><td style="padding:0.4rem 0.6rem">A system's output to a single unit impulse $\delta[n]$; it characterizes an LTI system completely.</td><td style="padding:0.4rem 0.6rem">1.4, 5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Convolution</strong></td><td style="padding:0.4rem 0.6rem">The operation that produces an LTI system's output: $y = x * h$.</td><td style="padding:0.4rem 0.6rem">1.4</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><strong>Frequency response $H(e^{j\omega})$</strong></td><td style="padding:0.4rem 0.6rem">How an LTI system scales/shifts each frequency; the Fourier transform of $h[n]$.</td><td style="padding:0.4rem 0.6rem">5.1, 5.5</td></tr>
+</table>
+
+<h2>3 · Frequency Domain</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.88rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Term</th><th style="text-align:left;padding:0.4rem 0.6rem">Meaning</th><th style="text-align:left;padding:0.4rem 0.6rem">See</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Fourier Transform (FT)</strong></td><td style="padding:0.4rem 0.6rem">Decomposes a signal into the sine/cosine (frequency) components that make it up.</td><td style="padding:0.4rem 0.6rem">2.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Spectrum</strong></td><td style="padding:0.4rem 0.6rem">The amount of each frequency present in a signal (magnitude) and its phase.</td><td style="padding:0.4rem 0.6rem">2.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>DFT</strong></td><td style="padding:0.4rem 0.6rem">Discrete Fourier Transform — the FT for a finite list of samples; $O(N^2)$ if done directly.</td><td style="padding:0.4rem 0.6rem">2.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>FFT</strong></td><td style="padding:0.4rem 0.6rem">Fast Fourier Transform — an $O(N\log N)$ algorithm that computes the exact same DFT.</td><td style="padding:0.4rem 0.6rem">2.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Bin</strong></td><td style="padding:0.4rem 0.6rem">One output point of the DFT; bin $k$ corresponds to frequency $k f_s/N$.</td><td style="padding:0.4rem 0.6rem">2.3, 3.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Frequency resolution</strong></td><td style="padding:0.4rem 0.6rem">Smallest frequency spacing you can truly distinguish: $\Delta f = f_s/N$ (set by record length).</td><td style="padding:0.4rem 0.6rem">2.3, 3.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Aliasing</strong></td><td style="padding:0.4rem 0.6rem">High frequencies above Nyquist masquerading as lower ones because of undersampling.</td><td style="padding:0.4rem 0.6rem">2.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Anti-aliasing filter</strong></td><td style="padding:0.4rem 0.6rem">A lowpass filter applied <em>before</em> the ADC to remove content above Nyquist.</td><td style="padding:0.4rem 0.6rem">2.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Spectral foldback</strong></td><td style="padding:0.4rem 0.6rem">Another name for aliasing — the spectrum "folds" around the Nyquist frequency.</td><td style="padding:0.4rem 0.6rem">2.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Zero-order hold (ZOH)</strong></td><td style="padding:0.4rem 0.6rem">A DAC holds each sample constant until the next — gives a staircase output and a $\text{sinc}$ roll-off.</td><td style="padding:0.4rem 0.6rem">2.4</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><strong>Reconstruction filter</strong></td><td style="padding:0.4rem 0.6rem">An analog lowpass after the DAC that smooths the staircase into a continuous signal.</td><td style="padding:0.4rem 0.6rem">2.4</td></tr>
+</table>
+
+<h2>4 · Signal Quality</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.88rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Term</th><th style="text-align:left;padding:0.4rem 0.6rem">Meaning</th><th style="text-align:left;padding:0.4rem 0.6rem">See</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>SNR</strong></td><td style="padding:0.4rem 0.6rem">Signal-to-Noise Ratio — ratio of signal power to noise power, usually in dB.</td><td style="padding:0.4rem 0.6rem">3.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>dB (decibel)</strong></td><td style="padding:0.4rem 0.6rem">Logarithmic ratio. Power: $10\log_{10}$; amplitude: $20\log_{10}$.</td><td style="padding:0.4rem 0.6rem">3.1, 5.5</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Averaging</strong></td><td style="padding:0.4rem 0.6rem">Averaging $M$ repeated measurements improves SNR by $\sqrt{M}$ (≈3 dB per doubling).</td><td style="padding:0.4rem 0.6rem">3.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Zero-padding</strong></td><td style="padding:0.4rem 0.6rem">Appending zeros <em>at the end</em> before an FFT — denser frequency grid, same true resolution.</td><td style="padding:0.4rem 0.6rem">3.2, 6.5</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Spectral leakage</strong></td><td style="padding:0.4rem 0.6rem">Energy smearing into neighbouring bins when a tone doesn't sit exactly on a bin.</td><td style="padding:0.4rem 0.6rem">3.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Window / taper</strong></td><td style="padding:0.4rem 0.6rem">A function multiplying the signal to taper its ends and reduce leakage (Hann, Hamming, Blackman…).</td><td style="padding:0.4rem 0.6rem">3.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Main lobe / side lobe</strong></td><td style="padding:0.4rem 0.6rem">A window's central peak vs. the smaller ripples around it — the resolution/leakage trade-off.</td><td style="padding:0.4rem 0.6rem">3.3</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><strong>Interpolation</strong></td><td style="padding:0.4rem 0.6rem">Estimating values between known samples (linear, spline, sinc).</td><td style="padding:0.4rem 0.6rem">3.4</td></tr>
+</table>
+
+<h2>5 · Time–Frequency</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.88rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Term</th><th style="text-align:left;padding:0.4rem 0.6rem">Meaning</th><th style="text-align:left;padding:0.4rem 0.6rem">See</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>STFT</strong></td><td style="padding:0.4rem 0.6rem">Short-Time Fourier Transform — FFT of successive short windows to see how the spectrum changes over time.</td><td style="padding:0.4rem 0.6rem">4.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Spectrogram</strong></td><td style="padding:0.4rem 0.6rem">A 2-D plot (time × frequency × magnitude) — the magnitude of the STFT.</td><td style="padding:0.4rem 0.6rem">4.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Time–frequency trade-off</strong></td><td style="padding:0.4rem 0.6rem">A long window gives fine frequency but coarse time resolution, and vice versa (uncertainty principle).</td><td style="padding:0.4rem 0.6rem">4.1, 4.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Overlap / hop</strong></td><td style="padding:0.4rem 0.6rem">How far consecutive STFT windows are shifted; more overlap = smoother spectrogram.</td><td style="padding:0.4rem 0.6rem">4.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Wavelet</strong></td><td style="padding:0.4rem 0.6rem">A short, localized oscillation used as a flexible time–frequency basis (multi-resolution).</td><td style="padding:0.4rem 0.6rem">4.2</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><strong>CWT / DWT</strong></td><td style="padding:0.4rem 0.6rem">Continuous / Discrete Wavelet Transform — analyse a signal across scales (≈ frequency bands).</td><td style="padding:0.4rem 0.6rem">4.2</td></tr>
+</table>
+
+<h2>6 · Filters &amp; the Z-Domain</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.88rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Term</th><th style="text-align:left;padding:0.4rem 0.6rem">Meaning</th><th style="text-align:left;padding:0.4rem 0.6rem">See</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Filter</strong></td><td style="padding:0.4rem 0.6rem">An LTI system that passes some frequencies and attenuates others.</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Lowpass / Highpass / Bandpass / Bandstop</strong></td><td style="padding:0.4rem 0.6rem">The four basic responses — keep lows / keep highs / keep a band / reject a band (notch).</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>FIR</strong></td><td style="padding:0.4rem 0.6rem">Finite Impulse Response — feedforward only, always stable, can have linear phase.</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>IIR</strong></td><td style="padding:0.4rem 0.6rem">Infinite Impulse Response — uses feedback, efficient/sharp but can be unstable, non-linear phase.</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Passband / Stopband / Transition band</strong></td><td style="padding:0.4rem 0.6rem">Frequencies kept / rejected / the roll-off region between them.</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Ripple</strong></td><td style="padding:0.4rem 0.6rem">Gain variation within the pass- or stopband (e.g. Chebyshev filters trade ripple for steepness).</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Linear phase</strong></td><td style="padding:0.4rem 0.6rem">All frequencies delayed equally (constant group delay) — preserves waveform shape.</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Butterworth / Chebyshev / Elliptic</strong></td><td style="padding:0.4rem 0.6rem">Classic IIR designs: maximally flat / equiripple in one band / equiripple in both (steepest).</td><td style="padding:0.4rem 0.6rem">5.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Z-transform</strong></td><td style="padding:0.4rem 0.6rem">Generalizes the DFT to complex $z$; turns difference equations into algebra.</td><td style="padding:0.4rem 0.6rem">5.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Unit circle</strong></td><td style="padding:0.4rem 0.6rem">$|z| = 1$ in the z-plane; evaluating $H(z)$ there gives the frequency response.</td><td style="padding:0.4rem 0.6rem">5.2, 5.6</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>ROC</strong></td><td style="padding:0.4rem 0.6rem">Region of Convergence — the set of $z$ where the Z-transform sum converges; decides causality/stability.</td><td style="padding:0.4rem 0.6rem">5.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Difference equation</strong></td><td style="padding:0.4rem 0.6rem">The recipe relating output samples to current/past inputs and past outputs.</td><td style="padding:0.4rem 0.6rem">5.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Transfer function $H(z)$</strong></td><td style="padding:0.4rem 0.6rem">$Y(z)/X(z)$ — ratio of polynomials whose roots are the zeros (numerator) and poles (denominator).</td><td style="padding:0.4rem 0.6rem">5.2, 5.6</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Pole / Zero</strong></td><td style="padding:0.4rem 0.6rem">Values of $z$ where $H(z)$ blows up (pole, boosts gain) or vanishes (zero, notches gain).</td><td style="padding:0.4rem 0.6rem">5.6</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Stability</strong></td><td style="padding:0.4rem 0.6rem">A causal filter is stable iff all poles lie strictly inside the unit circle ($|p|&lt;1$).</td><td style="padding:0.4rem 0.6rem">5.6</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Block diagram</strong></td><td style="padding:0.4rem 0.6rem">A visual wiring of adders, gains, and delays ($z^{-1}$) implementing a difference equation.</td><td style="padding:0.4rem 0.6rem">5.4</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Bode diagram</strong></td><td style="padding:0.4rem 0.6rem">Magnitude (dB) and phase plotted vs. frequency (log axis) — the standard response view.</td><td style="padding:0.4rem 0.6rem">5.5</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><strong>Group delay</strong></td><td style="padding:0.4rem 0.6rem">$-d\phi/d\omega$ — the time delay a filter imposes on each frequency.</td><td style="padding:0.4rem 0.6rem">5.5</td></tr>
+</table>
+
+<h2>7 · Resampling</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.88rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Term</th><th style="text-align:left;padding:0.4rem 0.6rem">Meaning</th><th style="text-align:left;padding:0.4rem 0.6rem">See</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Resampling</strong></td><td style="padding:0.4rem 0.6rem">Changing the sample rate of a signal (up, down, or by a rational factor $L/M$).</td><td style="padding:0.4rem 0.6rem">6.1</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Upsampling / Interpolation</strong></td><td style="padding:0.4rem 0.6rem">Raising the rate by $L$ — zero-stuff then lowpass filter to fill in the new samples.</td><td style="padding:0.4rem 0.6rem">6.2</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Downsampling / Decimation</strong></td><td style="padding:0.4rem 0.6rem">Lowering the rate by $M$ — lowpass filter first (anti-alias) then keep every $M$-th sample.</td><td style="padding:0.4rem 0.6rem">6.3</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Zero stuffing</strong></td><td style="padding:0.4rem 0.6rem">Inserting zeros <em>between</em> samples (the first step of upsampling); creates spectral images.</td><td style="padding:0.4rem 0.6rem">6.4</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem"><strong>Spectral image</strong></td><td style="padding:0.4rem 0.6rem">Copies of the baseband spectrum produced by zero stuffing; removed by the interpolation filter.</td><td style="padding:0.4rem 0.6rem">6.4</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem"><strong>Zero stuffing vs zero padding</strong></td><td style="padding:0.4rem 0.6rem">Stuffing = zeros between samples (changes rate); padding = zeros at the end (only DFT grid).</td><td style="padding:0.4rem 0.6rem">6.5</td></tr>
+</table>
+
+<div class="callout warning">
+  <strong>Easy to confuse:</strong> <em>Resolution</em> (set by record length $N$) vs <em>bin spacing</em> (set by FFT length after zero-padding); <em>zero stuffing</em> (rate change) vs <em>zero padding</em> (grid only); <em>decimation</em> (filter <strong>then</strong> drop samples) vs naive subsampling (drop samples → aliasing).
+</div>
+
+<h2>Quick Self-Check</h2>
+
+<div class="quiz-block" data-explanation="Frequency resolution Δf = fs/N depends only on the record length N (how long you observed the signal). Zero-padding makes the FFT grid denser but does not add real resolution.">
+  <h3>Q1. What sets the true frequency resolution of a spectrum?</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">The FFT length after zero-padding</li>
+    <li class="quiz-option" data-correct="true">The record length $N$ (observation time), giving $\Delta f = f_s/N$</li>
+    <li class="quiz-option" data-correct="false">The window function used</li>
+    <li class="quiz-option" data-correct="false">The sample rate alone</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="A causal IIR filter is stable if and only if every pole lies strictly inside the unit circle. Zeros may sit anywhere — they don't affect stability.">
+  <h3>Q2. A causal digital filter is stable when:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">All zeros are inside the unit circle</li>
+    <li class="quiz-option" data-correct="true">All poles are strictly inside the unit circle</li>
+    <li class="quiz-option" data-correct="false">It has more zeros than poles</li>
+    <li class="quiz-option" data-correct="false">It is an FIR filter only</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="The spectrogram is the magnitude of the STFT — it shows how the frequency content of a non-stationary signal evolves over time.">
+  <h3>Q3. A spectrogram is best described as:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">The FFT of the whole signal at once</li>
+    <li class="quiz-option" data-correct="true">The magnitude of the STFT — frequency content vs. time</li>
+    <li class="quiz-option" data-correct="false">The pole/zero plot of a filter</li>
+    <li class="quiz-option" data-correct="false">The autocorrelation of the signal</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>This glossary collects every named term from Modules 1–6 with a one-line meaning and a topic pointer.</li>
+    <li>Watch the classic confusions: resolution vs bin spacing, stuffing vs padding, decimation vs subsampling, FIR vs IIR.</li>
+    <li>For the math behind each term see <strong>7.2</strong>; for the MATLAB calls see <strong>7.3</strong>; for practical tricks see <strong>7.4</strong>.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m6-resampling/6.5-zero-padding-recap'); return false;">← 6.5 Zero Padding (Recap)</a>
+  <a href="#" onclick="loadTopic('m7-reference/7.2-equation-sheet'); return false;">Next: 7.2 Master Equation Sheet →</a>
+</div>

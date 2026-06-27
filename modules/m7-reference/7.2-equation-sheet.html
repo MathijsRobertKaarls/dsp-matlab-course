@@ -1,0 +1,191 @@
+<h1>7.2 — Master Equation Sheet</h1>
+<p class="topic-meta">Module 7 · Reference &amp; Summary · ~20 min</p>
+
+<h2>Introduction</h2>
+<p>Every important equation in the course, in one place, with each symbol named and a one-line note on when to use it. This is your exam crib sheet and your day-to-day lookup. Equations are grouped to follow the modules.</p>
+
+<div class="callout">
+  <strong>Symbol conventions used throughout:</strong> $x[n]$ = input samples, $y[n]$ = output samples, $h[n]$ = impulse response, $X(\cdot)$ = transform of $x$, $f_s$ = sample rate (Hz), $T_s = 1/f_s$ = sample period, $N$ = number of samples, $\omega = 2\pi f/f_s$ = normalized angular frequency (rad/sample).
+</div>
+
+<h2>1 · Sampling</h2>
+
+<p><strong>Sample period &amp; rate:</strong></p>
+$$T_s = \frac{1}{f_s}, \qquad t_n = n T_s = \frac{n}{f_s}$$
+
+<p><strong>Nyquist criterion</strong> — sample faster than twice the highest frequency:</p>
+$$f_s > 2 f_{max} \qquad\Longleftrightarrow\qquad f_{max} < \frac{f_s}{2}$$
+
+<p><strong>Aliased frequency</strong> — what an undersampled tone at $f$ appears as:</p>
+$$f_{alias} = \left| f - f_s \cdot \mathrm{round}\!\left(\frac{f}{f_s}\right)\right| \le \frac{f_s}{2}$$
+
+<p class="topic-meta">$f$ = true frequency, $f_s$ = sample rate. If $f &lt; f_s/2$ there is no aliasing. <em>(Topics 1.2, 2.2)</em></p>
+
+<h2>2 · LTI Systems &amp; Convolution</h2>
+
+<p><strong>Convolution</strong> — output of any LTI system:</p>
+$$y[n] = (x * h)[n] = \sum_{k=-\infty}^{\infty} x[k]\, h[n-k]$$
+
+<p><strong>Linearity (superposition)</strong> and <strong>time-invariance</strong>:</p>
+$$\mathcal{T}\{a\,x_1 + b\,x_2\} = a\,\mathcal{T}\{x_1\} + b\,\mathcal{T}\{x_2\}, \qquad x[n-n_0] \;\to\; y[n-n_0]$$
+
+<p class="topic-meta">$h[n]$ = impulse response; convolution in time = multiplication in frequency. <em>(Topic 1.4)</em></p>
+
+<h2>3 · Fourier Transforms</h2>
+
+<p><strong>Continuous Fourier Transform (CTFT):</strong></p>
+$$X(f) = \int_{-\infty}^{\infty} x(t)\, e^{-j 2\pi f t}\, dt$$
+
+<p><strong>Discrete-Time Fourier Transform (DTFT):</strong></p>
+$$X(e^{j\omega}) = \sum_{n=-\infty}^{\infty} x[n]\, e^{-j\omega n}$$
+
+<p><strong>Discrete Fourier Transform (DFT)</strong> — forward and inverse:</p>
+$$X[k] = \sum_{n=0}^{N-1} x[n]\, e^{-j 2\pi k n / N}, \qquad x[n] = \frac{1}{N}\sum_{k=0}^{N-1} X[k]\, e^{+j 2\pi k n / N}$$
+
+<p><strong>Bin-to-frequency mapping:</strong></p>
+$$f_k = \frac{k\, f_s}{N}, \qquad k = 0, 1, \dots, N-1$$
+
+<p><strong>Frequency resolution</strong> (true, set by record length):</p>
+$$\Delta f = \frac{f_s}{N} = \frac{1}{N T_s} = \frac{1}{T_{record}}$$
+
+<p class="topic-meta">$X[k]$ = DFT coefficient (bin $k$), $N$ = number of samples, $T_{record} = N T_s$ = total observation time. The FFT computes $X[k]$ in $O(N\log N)$. <em>(Topics 2.1, 2.3, 3.2)</em></p>
+
+<div class="callout warning">
+  <strong>Real-signal symmetry:</strong> for real $x[n]$, $X[N-k] = X[k]^{*}$. Only bins $0 \ldots N/2$ are unique — that's why one-sided spectra multiply amplitude by 2 (except DC and Nyquist).
+</div>
+
+<h2>4 · Signal Quality</h2>
+
+<p><strong>Power &amp; amplitude in decibels:</strong></p>
+$$\text{dB}_{power} = 10\log_{10}\!\frac{P}{P_{ref}}, \qquad \text{dB}_{amp} = 20\log_{10}\!\frac{A}{A_{ref}}$$
+
+<p><strong>Signal-to-Noise Ratio:</strong></p>
+$$\text{SNR}_{dB} = 10\log_{10}\!\frac{P_{signal}}{P_{noise}} = 20\log_{10}\!\frac{A_{signal,\,rms}}{A_{noise,\,rms}}$$
+
+<p><strong>SNR gain from averaging</strong> $M$ records of a repeatable signal:</p>
+$$\text{SNR}_{improvement} = \sqrt{M} \quad\Longleftrightarrow\quad 10\log_{10} M \;\text{dB} \;\;(\approx 3\text{ dB per doubling})$$
+
+<p class="topic-meta">$P$ = power, $A$ = amplitude, $M$ = number of averaged records. Coherent averaging cancels random noise but keeps the repeatable signal. <em>(Topic 3.1)</em></p>
+
+<p><strong>Windowing</strong> — taper before the FFT to reduce leakage:</p>
+$$x_w[n] = w[n]\, x[n]$$
+
+<p>Common windows (length $N$, $0 \le n \le N-1$):</p>
+$$w_{Hann}[n] = 0.5\left(1 - \cos\frac{2\pi n}{N-1}\right), \qquad w_{Hamming}[n] = 0.54 - 0.46\cos\frac{2\pi n}{N-1}$$
+
+<p class="topic-meta">$w[n]$ = window. Trade-off: wider main lobe (worse resolution) ↔ lower side lobes (less leakage). <em>(Topic 3.3)</em></p>
+
+<h2>5 · Z-Transform &amp; Filters</h2>
+
+<p><strong>Z-transform:</strong></p>
+$$X(z) = \sum_{n=-\infty}^{\infty} x[n]\, z^{-n}, \qquad z = r e^{j\omega}$$
+
+<p><strong>Frequency response from the transfer function</strong> (evaluate on the unit circle $z = e^{j\omega}$):</p>
+$$H(e^{j\omega}) = H(z)\big|_{z = e^{j\omega}}$$
+
+<p><strong>Delay property</strong> (the workhorse of difference equations):</p>
+$$x[n-k] \;\xrightarrow{\;\mathcal{Z}\;}\; z^{-k} X(z)$$
+
+<p><strong>General difference equation (ARMA):</strong></p>
+$$y[n] = \sum_{k=0}^{M} b_k\, x[n-k] \;-\; \sum_{k=1}^{N} a_k\, y[n-k]$$
+
+<p><strong>FIR special case</strong> (no feedback, $a_k = 0$ for $k\ge1$):</p>
+$$y[n] = \sum_{k=0}^{M} b_k\, x[n-k]$$
+
+<p><strong>Transfer function</strong> (take the Z-transform of the difference equation):</p>
+$$H(z) = \frac{Y(z)}{X(z)} = \frac{\displaystyle\sum_{k=0}^{M} b_k\, z^{-k}}{\displaystyle 1 + \sum_{k=1}^{N} a_k\, z^{-k}} = \frac{b_0\displaystyle\prod_{i}(1 - q_i z^{-1})}{\displaystyle\prod_{i}(1 - p_i z^{-1})}$$
+
+<p class="topic-meta">$b_k$ = feedforward (numerator) coefficients, $a_k$ = feedback (denominator) coefficients, $q_i$ = zeros, $p_i$ = poles, $M$/$N$ = numerator/denominator orders. <em>(Topics 5.1–5.3, 5.6)</em></p>
+
+<div class="callout">
+  <strong>Stability rule:</strong> a causal LTI filter is stable $\iff$ all poles satisfy $|p_i| &lt; 1$ (strictly inside the unit circle). Zeros may lie anywhere. FIR filters have no poles (except at the origin) and are therefore always stable.
+</div>
+
+<p><strong>Magnitude (Bode) and phase:</strong></p>
+$$|H(e^{j\omega})|_{dB} = 20\log_{10}\big|H(e^{j\omega})\big|, \qquad \phi(\omega) = \angle H(e^{j\omega})$$
+
+<p><strong>Group delay</strong> — the per-frequency time delay:</p>
+$$\tau_g(\omega) = -\frac{d\,\phi(\omega)}{d\omega}$$
+
+<p class="topic-meta">Linear phase $\Rightarrow$ $\phi(\omega) = -\alpha\omega \Rightarrow$ constant group delay $\tau_g = \alpha$ (a symmetric FIR of order $L$ gives $\tau_g = L/2$ samples). <em>(Topics 5.4, 5.5)</em></p>
+
+<h2>6 · Resampling</h2>
+
+<p><strong>Zero stuffing (upsample by $L$):</strong></p>
+$$x_L[n] = \begin{cases} x[n/L], & n = 0, L, 2L, \dots \\ 0, & \text{otherwise} \end{cases} \qquad\xrightarrow{\;\mathcal{Z}\;}\; X_L(z) = X(z^L)$$
+
+<p><strong>Downsampling (decimate by $M$):</strong> lowpass to $f_s/(2M)$ first, then keep every $M$-th sample:</p>
+$$y[n] = x_{filtered}[nM]$$
+
+<p><strong>New sample rates:</strong></p>
+$$f_{s,\,up} = L\, f_s, \qquad f_{s,\,down} = \frac{f_s}{M}, \qquad f_{s,\,rational} = \frac{L}{M}\, f_s$$
+
+<p><strong>Interpolation filter gain</strong> after zero-stuffing by $L$ (restore amplitude):</p>
+$$h_{interp}[n] = L \cdot h_{LPF}[n], \quad \text{cutoff } = \frac{f_s}{2}\ \text{(i.e. } \tfrac{\pi}{L}\ \text{rad/sample)}$$
+
+<p class="topic-meta">$L$ = upsampling factor, $M$ = downsampling factor. Zero-stuffing creates $L-1$ spectral images per band; the $\times L$ lowpass removes them and corrects the amplitude. <em>(Topics 6.2–6.4)</em></p>
+
+<h2>One-Glance Summary Table</h2>
+<table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin:1rem 0">
+  <tr style="border-bottom:2px solid var(--border);color:var(--accent)">
+    <th style="text-align:left;padding:0.4rem 0.6rem">Quantity</th><th style="text-align:left;padding:0.4rem 0.6rem">Formula</th><th style="text-align:left;padding:0.4rem 0.6rem">Use it for</th>
+  </tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem">Nyquist</td><td style="padding:0.4rem 0.6rem">$f_s &gt; 2 f_{max}$</td><td style="padding:0.4rem 0.6rem">Choosing a sample rate</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem">Bin frequency</td><td style="padding:0.4rem 0.6rem">$f_k = k f_s/N$</td><td style="padding:0.4rem 0.6rem">Labelling an FFT axis</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem">Resolution</td><td style="padding:0.4rem 0.6rem">$\Delta f = f_s/N$</td><td style="padding:0.4rem 0.6rem">How long to record</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem">SNR</td><td style="padding:0.4rem 0.6rem">$10\log_{10}(P_s/P_n)$</td><td style="padding:0.4rem 0.6rem">Quantifying noise</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem">Averaging gain</td><td style="padding:0.4rem 0.6rem">$\sqrt{M}$</td><td style="padding:0.4rem 0.6rem">Repeated measurements</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem">Transfer fn</td><td style="padding:0.4rem 0.6rem">$H(z)=\frac{\sum b_k z^{-k}}{1+\sum a_k z^{-k}}$</td><td style="padding:0.4rem 0.6rem">Filter analysis</td></tr>
+  <tr style="border-bottom:1px solid var(--border)"><td style="padding:0.4rem 0.6rem">Stability</td><td style="padding:0.4rem 0.6rem">$|p_i| &lt; 1$</td><td style="padding:0.4rem 0.6rem">Checking IIR filters</td></tr>
+  <tr><td style="padding:0.4rem 0.6rem">Group delay</td><td style="padding:0.4rem 0.6rem">$-d\phi/d\omega$</td><td style="padding:0.4rem 0.6rem">Phase distortion</td></tr>
+</table>
+
+<h2>Quick Self-Check</h2>
+
+<div class="quiz-block" data-explanation="To find which true bin a frequency lands in, invert f_k = k·fs/N → k = f·N/fs. With f=150, fs=1000, N=1000: k = 150·1000/1000 = 150.">
+  <h3>Q1. With $f_s = 1000$ Hz and $N = 1000$ samples, a 150 Hz tone appears in DFT bin:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">$k = 15$</li>
+    <li class="quiz-option" data-correct="true">$k = 150$</li>
+    <li class="quiz-option" data-correct="false">$k = 1500$</li>
+    <li class="quiz-option" data-correct="false">$k = 75$</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Averaging M records improves SNR by √M in amplitude, i.e. 10·log10(M) dB. For M=100 that is 10·log10(100) = 20 dB.">
+  <h3>Q2. Averaging 100 repeated noisy records improves SNR by about:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">100 dB</li>
+    <li class="quiz-option" data-correct="false">3 dB</li>
+    <li class="quiz-option" data-correct="true">20 dB</li>
+    <li class="quiz-option" data-correct="false">10 dB</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="quiz-block" data-explanation="Zero stuffing by L maps X(z) → X(z^L) in the z-domain, which compresses and replicates the spectrum, producing L−1 images. This is exactly why an interpolation lowpass is needed afterward.">
+  <h3>Q3. In the z-domain, upsampling (zero-stuffing) by $L$ transforms $X(z)$ into:</h3>
+  <ul class="quiz-options">
+    <li class="quiz-option" data-correct="false">$X(z)/L$</li>
+    <li class="quiz-option" data-correct="false">$X(z - L)$</li>
+    <li class="quiz-option" data-correct="true">$X(z^L)$</li>
+    <li class="quiz-option" data-correct="false">$L\,X(z)$</li>
+  </ul>
+  <div class="quiz-feedback"></div>
+</div>
+
+<div class="takeaways">
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>Sampling lives or dies on $f_s &gt; 2f_{max}$; the FFT axis is $f_k = k f_s/N$ with true resolution $\Delta f = f_s/N$.</li>
+    <li>Filters are summarized by $H(z) = \frac{\sum b_k z^{-k}}{1+\sum a_k z^{-k}}$; stability needs all poles inside the unit circle.</li>
+    <li>Averaging buys $\sqrt{M}$ SNR; zero-stuffing by $L$ does $X(z)\to X(z^L)$ and needs a $\times L$ lowpass.</li>
+    <li>Pair this sheet with <strong>7.3</strong> to see the MATLAB call that computes each quantity.</li>
+  </ul>
+</div>
+
+<div class="topic-nav">
+  <a href="#" onclick="loadTopic('m7-reference/7.1-glossary'); return false;">← 7.1 Glossary</a>
+  <a href="#" onclick="loadTopic('m7-reference/7.3-matlab-functions'); return false;">Next: 7.3 MATLAB Function Reference →</a>
+</div>
